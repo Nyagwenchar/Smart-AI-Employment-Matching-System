@@ -1,0 +1,45 @@
+{
+  "name": "smart-ai-employment-matching-system",
+  "version": "1.0.0",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node scripts/smoke-cv.js && node scripts/smoke-match.js && node scripts/smoke-ai.js",
+    "smoke:ai": "node scripts/smoke-ai.js",
+    "smoke:e2e": "node scripts/smoke-e2e.js",
+    "smoke:cv": "node scripts/smoke-cv.js",
+    "smoke:match": "node scripts/smoke-match.js",
+    "seed": "node scripts/seed-demo.js",
+    "db:migrate": "node scripts/apply-schema.js",
+    "check:inline": "node scripts/check-inline.js public/index.html public/login.html public/register.html public/job-listings.html public/job-seeker-dashboard.html public/employer-dashboard.html public/admin-dashboard.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Barb-okere/Smart-AI-Employment-Matching-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Barb-okere/Smart-AI-Employment-Matching-System/issues"
+  },
+  "homepage": "https://github.com/Barb-okere/Smart-AI-Employment-Matching-System#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.13.0",
+    "multer": "^2.4.0",
+    "pdf-parse": "^1.1.1",
+    "pg": "^8.23.1"
+  },
+  "description": "AI-powered CV parsing, job matching and career recommendations for the Kenyan job market.",
+  "optionalDependencies": {
+    "node-llama-cpp": "^3.22.3"
+  }
+}

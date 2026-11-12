@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Local secrets: database password, JWT secret, Gemini/backup API keys.
+# .env.example is the documented template and IS committed.
+.env
+.env.*
+!.env.example
+
+# User uploads: CVs are personal data and never belong in version control
+uploads/*
+!uploads/.gitkeep
+
+# Local GGUF models for the embedded tier (multi-gigabyte binaries)
+*.gguf
+models/
+
+# Runtime logs
+*.log
+npm-debug.log*
+
+# Editor and OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaziConnect | Create your account</title>
+
+  <!-- Fonts: Outfit (Display) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#1A5C32',
+              amber: '#F05A28',
+              dark: '#0D2B17',
+              light: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.460.0"></script>
+
+  <style>
+    .field {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 0.75rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.875rem;
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field:focus { outline: none; border-color: #1A5C32; box-shadow: 0 0 0 3px rgba(26,92,50,.15); }
+    .field[aria-invalid="true"] { border-color: #dc2626; }
+    .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+    .err { color: #b91c1c; font-size: 0.75rem; margin-top: 0.35rem; min-height: 0; }
+    .role-card:has(input:checked) { border-color: #1A5C32; background: #ecf5ef; }
+    .role-card:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(26,92,50,.3); }
+    .role-card:has(input:checked) .role-dot { background: #1A5C32; border-color: #1A5C32; }
+    .role-card:has(input:checked) .role-dot::after { opacity: 1; }
+    .role-dot::after { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: #fff; opacity: 0; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body class="bg-brand-light text-gray-800 font-sans antialiased min-h-screen">
+
+  <div class="min-h-screen grid lg:grid-cols-5">
+
+    <!-- LEFT: brand panel -->
+    <aside class="hidden lg:flex lg:col-span-2 bg-brand-green text-white flex-col justify-between p-12 sticky top-0 h-screen">
+      <a href="index.html" class="flex items-center space-x-3">
+        <div class="bg-brand-amber p-2 rounded-lg">
+          <i data-lucide="briefcase" class="w-6 h-6"></i>
+        </div>
+        <span class="font-display font-bold text-2xl tracking-tight">KaziConnect</span>
+      </a>
+
+      <div>
+        <h1 class="font-display text-4xl font-extrabold leading-tight mb-5">
+          Your skills, matched to real work across Kenya.
+        </h1>
+        <p class="text-emerald-100 max-w-sm mb-10">
+          Create one free account to get matched with jobs and internships, see where your skills fall short, and hear back from verified employers.
+        </p>
+
+        <ul class="space-y-5 max-w-sm">
+          <li class="flex items-start space-x-4">
+            <span class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><i data-lucide="sparkles" class="w-5 h-5 text-brand-amber"></i></span>
+            <span><span class="font-semibold block">Matches based on your skills</span><span class="text-sm text-emerald-200">Jobs and internships ranked by how well you fit.</span></span>
+          </li>
+          <li class="flex items-start space-x-4">
+            <span class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><i data-lucide="radar" class="w-5 h-5 text-brand-amber"></i></span>
+            <span><span class="font-semibold block">See your skill gaps</span><span class="text-sm text-emerald-200">Know what to learn next for the roles you want.</span></span>
+          </li>
+          <li class="flex items-start space-x-4">
+            <span class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><i data-lucide="shield-check" class="w-5 h-5 text-brand-amber"></i></span>
+            <span><span class="font-semibold block">Verified employers only</span><span class="text-sm text-emerald-200">Every company is vetted before it can post.</span></span>
+          </li>
+        </ul>
+      </div>
+
+      <p class="text-xs text-emerald-200">© 2026 KaziConnect Ltd.</p>
+    </aside>
+
+    <!-- RIGHT: form -->
+    <main class="lg:col-span-3 flex items-start justify-center px-4 sm:px-8 py-10 lg:py-14">
+      <div class="w-full max-w-xl">
+
+        <!-- Mobile brand -->
+        <a href="index.html" class="lg:hidden flex items-center space-x-2 mb-8 text-brand-green">
+          <div class="bg-brand-amber text-white p-1.5 rounded-lg"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
+          <span class="font-display font-bold text-xl">KaziConnect</span>
+        </a>
+
+        <!-- FORM STATE -->
+        <div id="formView">
+          <h2 class="font-display text-3xl font-bold text-gray-900">Create your account</h2>
+          <p class="text-sm text-gray-600 mt-2 mb-8">
+            Already registered? <a href="login.html" class="text-brand-green font-semibold hover:underline">Log in</a>
+          </p>
+
+          <form id="registerForm" novalidate class="space-y-6">
+
+            <!-- Role -->
+            <fieldset>
+              <legend class="text-sm font-semibold text-gray-900 mb-3">I want to</legend>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <label class="role-card cursor-pointer flex items-start space-x-3 p-4 bg-white border border-gray-200 rounded-xl transition">
+                  <input type="radio" name="role" value="jobseeker" class="sr-only" checked>
+                  <span class="role-dot mt-1 w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 transition"></span>
+                  <span>
+                    <span class="font-display font-bold block text-gray-900">Find work</span>
+                    <span class="text-xs text-gray-600">Jobs and internships that fit my skills</span>
+                  </span>
+                </label>
+                <label class="role-card cursor-pointer flex items-start space-x-3 p-4 bg-white border border-gray-200 rounded-xl transition">
+                  <input type="radio" name="role" value="employer" class="sr-only">
+                  <span class="role-dot mt-1 w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0 transition"></span>
+                  <span>
+                    <span class="font-display font-bold block text-gray-900">Hire talent</span>
+                    <span class="text-xs text-gray-600">Post roles and review matched candidates</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <!-- Basics -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2">
+                <label for="fullName" class="block text-sm font-medium mb-1.5">Full name</label>
+                <input id="fullName" name="fullName" type="text" autocomplete="name" class="field" placeholder="e.g. Wanjiru Kamau">
+                <p class="err" data-err="fullName"></p>
+              </div>
+              <div>
+                <label for="email" class="block text-sm font-medium mb-1.5">Email address</label>
+                <input id="email" name="email" type="email" autocomplete="email" class="field" placeholder="you@example.com">
+                <p class="err" data-err="email"></p>
+              </div>
+              <div>
+                <label for="phone" class="block text-sm font-medium mb-1.5">Phone number</label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" class="field" placeholder="0712 345 678">
+                <p class="err" data-err="phone"></p>
+              </div>
+              <div class="sm:col-span-2">
+                <label for="county" class="block text-sm font-medium mb-1.5">County</label>
+                <select id="county" name="county" class="field">
+                  <option value="">Select your county</option>
+                </select>
+                <p class="err" data-err="county"></p>
+              </div>
+            </div>
+
+            <!-- JOB SEEKER FIELDS -->
+            <div id="seekerFields" class="space-y-4 p-5 bg-white border border-gray-200 rounded-2xl">
+              <h3 class="font-display font-bold text-gray-900">About your career</h3>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="education" class="block text-sm font-medium mb-1.5">Highest education</label>
+                  <select id="education" name="education" class="field">
+                    <option value="">Select level</option>
+                    <option>KCSE / High school</option>
+                    <option>Certificate</option>
+                    <option>Diploma</option>
+                    <option>Bachelor's degree</option>
+                    <option>Master's degree or higher</option>
+                  </select>
+                  <p class="err" data-err="education"></p>
+                </div>
+                <div>
+                  <label for="looking" class="block text-sm font-medium mb-1.5">I'm looking for</label>
+                  <select id="looking" name="looking" class="field">
+                    <option value="both">Jobs and internships</option>
+                    <option value="job">Jobs</option>
+                    <option value="internship">Internships</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="skillInput" class="block text-sm font-medium mb-1.5">Your skills</label>
+                <div class="field flex flex-wrap items-center gap-2 !py-2 focus-within:!border-brand-green" id="skillBox">
+                  <span id="skillTags" class="contents"></span>
+                  <input id="skillInput" type="text" class="flex-1 min-w-[8rem] outline-none text-sm py-1 bg-transparent" placeholder="Type a skill and press Enter" aria-describedby="skillHelp">
+                </div>
+                <p id="skillHelp" class="text-xs text-gray-500 mt-1.5">Add at least 1, up to 10. Or tap a suggestion:</p>
+                <div id="skillSuggestions" class="flex flex-wrap gap-2 mt-2"></div>
+                <p class="err" data-err="skills"></p>
+              </div>
+            </div>
+
+            <!-- EMPLOYER FIELDS -->
+            <div id="employerFields" class="hidden space-y-4 p-5 bg-white border border-gray-200 rounded-2xl">
+              <h3 class="font-display font-bold text-gray-900">About your company</h3>
+              <div>
+                <label for="company" class="block text-sm font-medium mb-1.5">Company name</label>
+                <input id="company" name="company" type="text" autocomplete="organization" class="field" placeholder="e.g. Savannah Logistics Ltd">
+                <p class="err" data-err="company"></p>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="sector" class="block text-sm font-medium mb-1.5">Sector</label>
+                  <select id="sector" name="sector" class="field">
+                    <option value="">Select sector</option>
+                    <option>Technology</option>
+                    <option>Finance &amp; Banking</option>
+                    <option>Digital Marketing</option>
+                    <option>Agribusiness</option>
+                    <option>Health</option>
+                    <option>Education</option>
+                    <option>Manufacturing</option>
+                    <option>Other</option>
+                  </select>
+                  <p class="err" data-err="sector"></p>
+                </div>
+                <div>
+                  <label for="size" class="block text-sm font-medium mb-1.5">Company size</label>
+                  <select id="size" name="size" class="field">
+                    <option value="">Select size</option>
+                    <option>1–10 employees</option>
+                    <option>11–50 employees</option>
+                    <option>51–200 employees</option>
+                    <option>201–1,000 employees</option>
+                    <option>1,000+ employees</option>
+                  </select>
+                  <p class="err" data-err="size"></p>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 flex items-start space-x-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-brand-green flex-shrink-0 mt-0.5"></i>
+                <span>New employers are verified before their first job goes live. We'll email you if we need your registration documents.</span>
+              </p>
+            </div>
+
+            <!-- Password -->
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label for="password" class="block text-sm font-medium mb-1.5">Password</label>
+                <div class="relative">
+                  <input id="password" name="password" type="password" autocomplete="new-password" class="field pr-11" placeholder="At least 8 characters" aria-describedby="strengthText">
+                  <button type="button" id="togglePw" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-gray-800 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-green" aria-label="Show password">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+                <div class="flex gap-1 mt-2" aria-hidden="true">
+                  <span class="h-1 flex-1 rounded-full bg-gray-200" data-bar></span>
+                  <span class="h-1 flex-1 rounded-full bg-gray-200" data-bar></span>
+                  <span class="h-1 flex-1 rounded-full bg-gray-200" data-bar></span>
+                  <span class="h-1 flex-1 rounded-full bg-gray-200" data-bar></span>
+                </div>
+                <p id="strengthText" class="text-xs text-gray-500 mt-1.5" aria-live="polite">Use letters and numbers.</p>
+                <p class="err" data-err="password"></p>
+              </div>
+              <div>
+                <label for="confirm" class="block text-sm font-medium mb-1.5">Confirm password</label>
+                <input id="confirm" name="confirm" type="password" autocomplete="new-password" class="field" placeholder="Re-enter password">
+                <p class="err" data-err="confirm"></p>
+              </div>
+            </div>
+
+            <!-- Terms -->
+            <div>
+              <label class="flex items-start space-x-3 text-sm text-gray-700 cursor-pointer">
+                <input id="terms" type="checkbox" class="mt-1 w-4 h-4 accent-[#1A5C32]">
+                <span>I agree to the <a href="#" class="text-brand-green font-semibold hover:underline">Terms of Service</a> and <a href="#" class="text-brand-green font-semibold hover:underline">Privacy Policy</a>.</span>
+              </label>
+              <p class="err" data-err="terms"></p>
+            </div>
+
+            <!-- Form-level message (server errors show here) -->
+            <p id="formError" class="text-sm text-center text-red-700 font-medium" role="alert"></p>
+
+            <button id="submitBtn" type="submit" class="w-full bg-brand-amber hover:bg-opacity-90 text-white font-bold py-3.5 rounded-xl shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-amber">
+              Create account
+            </button>
+          </form>
+        </div>
+
+        <!-- SUCCESS STATE -->
+        <div id="successView" class="hidden text-center py-16" role="status">
+          <div class="w-16 h-16 mx-auto mb-6 bg-emerald-100 text-brand-green rounded-full flex items-center justify-center">
+            <i data-lucide="check" class="w-8 h-8"></i>
+          </div>
+          <h2 class="font-display text-3xl font-bold text-gray-900 mb-2">Welcome to KaziConnect, <span id="welcomeName"></span></h2>
+          <p id="successMsg" class="text-gray-600 max-w-md mx-auto mb-8"></p>
+          <a id="dashLink" href="job-seeker-dashboard.html" class="inline-block bg-brand-green hover:bg-emerald-900 text-white font-semibold px-8 py-3 rounded-xl transition">Go to my dashboard</a>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const COUNTIES = ["Baringo","Bomet","Bungoma","Busia","Elgeyo-Marakwet","Embu","Garissa","Homa Bay","Isiolo","Kajiado","Kakamega","Kericho","Kiambu","Kilifi","Kirinyaga","Kisii","Kisumu","Kitui","Kwale","Laikipia","Lamu","Machakos","Makueni","Mandera","Marsabit","Meru","Migori","Mombasa","Murang'a","Nairobi","Nakuru","Nandi","Narok","Nyamira","Nyandarua","Nyeri","Samburu","Siaya","Taita-Taveta","Tana River","Tharaka-Nithi","Trans Nzoia","Turkana","Uasin Gishu","Vihiga","Wajir","West Pokot"];
+    const SKILL_SUGGESTIONS = ["Python","JavaScript","React","SQL","Excel","Data Analysis","Customer Service","Digital Marketing","Graphic Design","Accounting","Agronomy","Project Management"];
+    const MAX_SKILLS = 10;
+
+    const $ = (id) => document.getElementById(id);
+    const form = $('registerForm');
+    const submitBtn = $('submitBtn');
+    let skills = [];
+
+    // ---------- Setup ----------
+    lucide.createIcons();
+    COUNTIES.forEach(c => $('county').insertAdjacentHTML('beforeend', `<option>${c}</option>`));
+
+    // ---------- Role toggle ----------
+    function currentRole() { return form.querySelector('input[name="role"]:checked').value; }
+    form.querySelectorAll('input[name="role"]').forEach(r => r.addEventListener('change', () => {
+      const seeker = currentRole() === 'jobseeker';
+      $('seekerFields').classList.toggle('hidden', !seeker);
+      $('employerFields').classList.toggle('hidden', seeker);
+      $('fullName').previousElementSibling.textContent = seeker ? 'Full name' : 'Your full name';
+      clearAllErrors();
+    }));
+
+    // ---------- Skills tag input ----------
+    function renderSkills() {
+      $('skillTags').innerHTML = '';
+      skills.forEach((s, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center bg-emerald-50 text-brand-green border border-emerald-200 text-xs font-medium pl-2.5 pr-1 py-1 rounded-lg';
+        chip.textContent = s;
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'ml-1 p-0.5 rounded hover:bg-emerald-100';
+        x.setAttribute('aria-label', 'Remove ' + s);
+        x.innerHTML = '&times;';
+        x.addEventListener('click', () => { skills.splice(i, 1); renderSkills(); });
+        chip.appendChild(x);
+        $('skillTags').appendChild(chip);
+      });
+      $('skillSuggestions').innerHTML = '';
+      SKILL_SUGGESTIONS.filter(s => !skills.some(k => k.toLowerCase() === s.toLowerCase())).slice(0, 8).forEach(s => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'text-xs bg-white border border-gray-200 text-gray-700 px-2.5 py-1 rounded-lg hover:border-brand-green hover:text-brand-green transition';
+        b.textContent = '+ ' + s;
+        b.addEventListener('click', () => addSkill(s));
+        $('skillSuggestions').appendChild(b);
+      });
+    }
+    function addSkill(raw) {
+      const s = raw.trim().replace(/\s+/g, ' ');
+      if (!s || s.length > 30) return;
+      if (skills.length >= MAX_SKILLS) { setError('skills', 'You can add up to ' + MAX_SKILLS + ' skills.'); return; }
+      if (skills.some(k => k.toLowerCase() === s.toLowerCase())) return;
+      skills.push(s);
+      setError('skills', '');
+      renderSkills();
+    }
+    $('skillInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addSkill($('skillInput').value);
+        $('skillInput').value = '';
+      } else if (e.key === 'Backspace' && !$('skillInput').value && skills.length) {
+        skills.pop(); renderSkills();
+      }
+    });
+    $('skillInput').addEventListener('blur', () => { addSkill($('skillInput').value); $('skillInput').value = ''; });
+    renderSkills();
+
+    // ---------- Password UI ----------
+    $('togglePw').addEventListener('click', () => {
+      const show = $('password').type === 'password';
+      $('password').type = show ? 'text' : 'password';
+      $('togglePw').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      $('togglePw').innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+      lucide.createIcons();
+    });
+
+    function passwordScore(p) {
+      let s = 0;
+      if (p.length >= 8) s++;
+      if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+      if (/\d/.test(p)) s++;
+      if (/[^A-Za-z0-9]/.test(p) || p.length >= 12) s++;
+      return s;
+    }
+    $('password').addEventListener('input', () => {
+      const p = $('password').value;
+      const score = p ? passwordScore(p) : 0;
+      const colors = ['#dc2626', '#F05A28', '#d97706', '#1A5C32'];
+      const labels = ['Too weak', 'Weak', 'Good', 'Strong'];
+      document.querySelectorAll('[data-bar]').forEach((bar, i) => {
+        bar.style.background = i < score ? colors[score - 1] : '#e5e7eb';
+      });
+      $('strengthText').textContent = p ? labels[Math.max(score - 1, 0)] : 'Use letters and numbers.';
+    });
+
+    // ---------- Validation ----------
+    function setError(name, msg) {
+      const el = document.querySelector(`[data-err="${name}"]`);
+      if (el) el.textContent = msg;
+      const input = $(name);
+      if (input) input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    }
+    function clearAllErrors() {
+      document.querySelectorAll('[data-err]').forEach(el => el.textContent = '');
+      form.querySelectorAll('[aria-invalid]').forEach(el => el.setAttribute('aria-invalid', 'false'));
+      $('formError').textContent = '';
+    }
+
+    function validate() {
+      clearAllErrors();
+      const errors = {};
+      const v = (id) => $(id).value.trim();
+      const role = currentRole();
+
+      if (v('fullName').length < 2) errors.fullName = 'Enter your full name.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('email'))) errors.email = 'Enter a valid email address, like name@example.com.';
+      const phone = v('phone').replace(/[\s-]/g, '');
+      if (!/^(?:\+254|254|0)[17]\d{8}$/.test(phone)) errors.phone = 'Enter a Kenyan mobile number, like 0712 345 678.';
+      if (!v('county')) errors.county = 'Select your county.';
+
+      if (role === 'jobseeker') {
+        if (!v('education')) errors.education = 'Select your highest education level.';
+        if (skills.length === 0) errors.skills = 'Add at least one skill so we can match you.';
+      } else {
+        if (v('company').length < 2) errors.company = 'Enter your company name.';
+        if (!v('sector')) errors.sector = 'Select your sector.';
+        if (!v('size')) errors.size = 'Select your company size.';
+      }
+
+      const pw = $('password').value;
+      if (pw.length < 8 || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) errors.password = 'Use at least 8 characters, with letters and numbers.';
+      if ($('confirm').value !== pw || !$('confirm').value) errors.confirm = 'Passwords do not match.';
+      if (!$('terms').checked) errors.terms = 'Accept the terms to create your account.';
+
+      Object.entries(errors).forEach(([k, m]) => setError(k, m));
+      const first = Object.keys(errors)[0];
+      if (first) {
+        const target = $(first) || (first === 'skills' ? $('skillInput') : null);
+        if (target) target.focus();
+        $('formError').textContent = 'Please fix the highlighted fields above.';
+      }
+      return Object.keys(errors).length === 0;
+    }
+
+    // Clear an error as soon as the user fixes the field
+    form.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', () => { if (el.id && el.getAttribute('aria-invalid') === 'true') setError(el.id, ''); });
+      el.addEventListener('change', () => { if (el.id && el.getAttribute('aria-invalid') === 'true') setError(el.id, ''); });
+    });
+
+    // ---------- Submit (sends the form to the server) ----------
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        if (!validate()) return;
+
+        const role = currentRole();
+        const isSeeker = role === 'jobseeker';
+        const payload = {
+          full_name: $('fullName').value.trim(),
+          email: $('email').value.trim().toLowerCase(),
+          phone: $('phone').value.trim(),
+          password: $('password').value,
+          county: $('county').value,
+          role: isSeeker ? 'job_seeker' : 'employer',
+          profile: isSeeker
+            ? { education: $('education').value, looking: $('looking').value, skills }
+            : { company: $('company').value.trim(), sector: $('sector').value, size: $('size').value }
+        };
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating account…';
+
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          $('formError').textContent = data.error || ('Something went wrong (error ' + res.status + '). Please try again.');
+          return;
+        }
+
+        const session = { token: data.token, role: data.role, fullName: data.name };
+        try { localStorage.setItem('kaziconnectSession', JSON.stringify(session)); } catch (err) { /* storage unavailable */ }
+
+        $('welcomeName').textContent = data.name.split(' ')[0];
+        if (isSeeker) {
+          $('successMsg').textContent = 'Your account is ready. Your first matches are waiting on your dashboard.';
+          $('dashLink').href = 'job-seeker-dashboard.html';
+        } else {
+          $('successMsg').textContent = 'Your account is ready. We will verify ' + payload.profile.company + ' before your first job goes live, but you can start drafting listings now.';
+          $('dashLink').href = 'employer-dashboard.html';
+        }
+        $('formView').classList.add('hidden');
+        $('successView').classList.remove('hidden');
+        lucide.createIcons();
+        window.scrollTo({ top: 0 });
+        $('dashLink').focus();
+      } catch (err) {
+        console.error('Register page error:', err);
+        $('formError').textContent = "Couldn't send your details. Make sure the server is running and that you opened this page at http://localhost:3000. (" + err.message + ')';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create account';
+      }
+    });
+  </script>
+</body>
+</html>

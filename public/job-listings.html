@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaziConnect | Browse AI-Matched Jobs</title>
+
+    <!-- Fonts: Outfit (Display) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#1A5C32',
+              amber: '#F05A28',
+              dark: '#0D2B17',
+              light: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-brand-light text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- NAVIGATION BAR -->
+  <nav class="bg-brand-green text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="bg-brand-amber text-white p-1.5 rounded-lg">
+            <i data-lucide="briefcase" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-xl tracking-tight">KaziConnect</span>
+        </a>
+        <span class="bg-white/10 text-emerald-200 text-xs px-2.5 py-1 rounded-full font-medium ml-2">Job Opportunities</span>
+        <span id="aiBadge" class="hidden text-xs px-2.5 py-1 rounded-full font-medium ml-2">AI</span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <a href="login.html" class="px-4 py-2 border border-white/30 rounded-lg font-medium hover:bg-white/10 transition">Log In</a>
+        <a href="job-seeker-dashboard.html" class="text-xs font-semibold hover:text-emerald-200 transition">My Dashboard</a>
+        <div class="flex items-center space-x-3 border-l border-white/20 pl-4">
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SEARCH HEADER -->
+  <header class="bg-brand-dark text-white py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="font-display font-extrabold text-2xl sm:text-3xl text-white mb-2">Find AI-Matched Opportunities</h1>
+      <p class="text-emerald-200 text-sm max-w-xl mb-6">Explore roles aligned with your verified skills across Kenya’s top innovation, financial, and tech sectors.</p>
+      
+      <!-- SEARCH & FILTER BAR -->
+      <div class="bg-white p-3 rounded-2xl shadow-xl flex flex-col md:flex-row gap-3 text-gray-800">
+        <div class="relative flex-grow">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400"></i>
+          <input type="text" id="searchInput" onkeyup="filterJobs()" placeholder="Search title, skills, or employer..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-green">
+        </div>
+        <div class="relative w-full md:w-56">
+          <i data-lucide="map-pin" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400"></i>
+          <select id="locationSelect" onchange="filterJobs()" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-green bg-white text-gray-700">
+            <option value="">All Locations</option>
+            <option value="Nairobi">Nairobi</option>
+            <option value="Mombasa">Mombasa</option>
+            <option value="Kisumu">Kisumu</option>
+            <option value="Eldoret">Eldoret</option>
+            <option value="Remote">Remote</option>
+          </select>
+        </div>
+        <button class="bg-brand-amber hover:bg-opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          <span>Filter</span>
+        </button>
+      </div>
+
+      <!-- SECTOR CHIPS -->
+      <div id="sectorChips" class="flex items-center space-x-2 mt-4 overflow-x-auto pb-2 scrollbar-none text-xs">
+        <span class="text-emerald-300 font-semibold uppercase tracking-wider text-[11px] mr-2">Sectors:</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LISTINGS CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+    
+    <!-- RESULTS BAR -->
+    <div class="flex justify-between items-center mb-6">
+      <p class="text-xs text-gray-500 font-medium">Showing <span id="resultsCount" class="font-bold text-gray-900">0</span> open opportunities</p>
+      <div class="flex items-center space-x-2 text-xs">
+        <span class="text-gray-500">Sort by:</span>
+        <select onchange="sortJobs(this.value)" class="border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white font-medium focus:outline-none focus:border-brand-green">
+          <option value="match">Highest AI Match</option>
+          <option value="recent">Most Recent</option>
+          <option value="alpha">Alphabetical</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- JOB CARDS GRID -->
+    <div id="jobListingsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <p class="text-sm text-gray-500">Loading open roles…</p>
+    </div>
+  </main>
+
+  <!-- APPLICATION / JOB DETAIL MODAL -->
+  <div id="jobDetailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative">
+      <div class="flex justify-between items-start pb-4 border-b border-gray-100">
+        <div>
+          <span id="modalMatch" class="bg-emerald-50 text-brand-green text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">—</span>
+          <h3 id="modalTitle" class="font-display font-bold text-xl text-gray-900 mt-2">Job Title</h3>
+          <p id="modalCompany" class="text-xs text-gray-500">Company Name</p>
+        </div>
+        <button onclick="closeJobDetail()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-3 text-xs text-gray-600">
+        <div class="flex items-center space-x-4">
+          <span class="flex items-center"><i data-lucide="map-pin" class="w-3.5 h-3.5 mr-1 text-gray-400"></i><span id="modalLocation">Location</span></span>
+          <span class="flex items-center"><i data-lucide="banknote" class="w-3.5 h-3.5 mr-1 text-gray-400"></i><span id="modalSalary">Salary</span></span>
+        </div>
+        <p id="modalSummary" class="text-gray-700 leading-relaxed pt-2">Upload a CV and this role will be scored against your skills.</p>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+        <button onclick="closeJobDetail()" class="px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-800">Cancel</button>
+        <button id="confirmApply" onclick="submitApplication()" class="px-5 py-2 text-xs bg-brand-amber text-white font-semibold rounded-lg hover:bg-opacity-90 transition flex items-center space-x-1.5">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          <span>Confirm & Submit Application</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+      &copy; 2026 KaziConnect. Connecting Kenyan Professionals with High-Impact Roles.
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    lucide.createIcons();
+
+    const JOBS = [];
+    const APPLIED = new Set();
+
+    let currentSectorFilter = 'All';
+    let currentSort = 'match';
+    let activeJobId = null;
+
+    const authSessionText =
+      localStorage.getItem('kaziconnectSession') ||
+      sessionStorage.getItem('kaziconnectSession');
+
+    const authSession = authSessionText ? JSON.parse(authSessionText) : {};
+    const AUTH_TOKEN = authSession.token || '';
+
+    function api(path, options) {
+      const settings = options || {};
+      const headers = Object.assign(
+        { Authorization: `Bearer ${AUTH_TOKEN}` },
+        settings.body ? { 'Content-Type': 'application/json' } : {},
+        settings.headers || {}
+      );
+
+      return fetch(path, Object.assign({}, settings, { headers, cache: 'no-store' }))
+        .then(async (response) => {
+          const payload = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            const error = new Error(
+              (payload && payload.error) || `Request failed (${response.status})`
+            );
+            error.status = response.status;
+            throw error;
+          }
+
+          return payload;
+        });
+    }
+
+    function escapeHtml(value) {
+      return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Tier 1 Gemini, tier 2 an OpenAI-compatible backup, tier 3 an embedded
+    // GGUF model, tier 4 the deterministic engine. The badge names whichever
+    // one will answer the next request.
+    const AI_TIER_LABELS = { gemini: 'Gemini', hosted: 'Backup model', local: 'Local model' };
+
+    function renderAi(ai) {
+      const badge = document.getElementById('aiBadge');
+      if (!badge || !ai) return;
+
+      badge.classList.remove('hidden');
+
+      const tiers = Array.isArray(ai.tiers) ? ai.tiers : [];
+      const active = ai.active_tier || (ai.mode && ai.mode !== 'offline' ? ai.mode : null);
+      const entry = active ? tiers.find((tier) => tier.tier === active) : null;
+      const configured = tiers.some((tier) => tier.configured) ||
+        Boolean(ai.online && ai.online.configured);
+
+      if (active) {
+        const label = AI_TIER_LABELS[active] || active;
+        const model = (entry && entry.model) || (ai.online && ai.online.model) || '';
+
+        badge.textContent = model ? `AI: ${label} (${model})` : `AI: ${label}`;
+        badge.className = active === 'gemini'
+          ? 'bg-white text-brand-green text-xs px-2.5 py-1 rounded-full font-semibold ml-2'
+          : 'bg-amber-200 text-amber-900 text-xs px-2.5 py-1 rounded-full font-semibold ml-2';
+      } else {
+        badge.textContent = configured
+          ? 'AI: Offline engine (models busy)'
+          : 'AI: Offline engine';
+        badge.className = 'bg-white/15 text-emerald-100 text-xs px-2.5 py-1 rounded-full font-medium ml-2';
+      }
+
+      const notes = {
+        gemini: 'Gemini answers first; the backup model, the local model and finally the offline engine take over if it fails.',
+        hosted: 'Gemini is unavailable, so the backup model is answering. The local model and the offline engine are next.',
+        local: 'Both hosted models are unavailable; the embedded local model is answering. The offline engine is the last resort.'
+      };
+
+      badge.title = notes[active] || (ai.reason
+        ? `Offline engine active: ${ai.reason}`
+        : 'Match percentages and recommendations keep the same format in every mode.');
+    }
+
+    function formatSalary(job) {
+      const min = Number(job.salary_min);
+      const max = Number(job.salary_max);
+      const format = (amount) => amount.toLocaleString('en-KE', { maximumFractionDigits: 0 });
+
+      if (!min && !max) return 'Salary not disclosed';
+
+      if (min && max) return `KES ${format(min)} - ${format(max)} / mo`;
+
+      return `KES ${format(min || max)} / mo`;
+    }
+
+    function sectorOf(job) {
+      return job.department || job.industry || 'General';
+    }
+
+    function chipClasses(active) {
+      return 'sector-chip px-3.5 py-1.5 rounded-full transition whitespace-nowrap ' + (active
+        ? 'bg-brand-amber text-white font-semibold'
+        : 'bg-white/10 hover:bg-white/20 text-emerald-100 font-medium');
+    }
+
+    /* ------------------------------ Cards ----------------------------- */
+
+    function matchBadge(job) {
+      if (job.match_score === null || job.match_score === undefined) {
+        return '<span class="bg-gray-100 text-gray-500 border border-gray-200 text-xs font-bold px-3 py-1 rounded-full">Not scored</span>';
+      }
+
+      const score = Math.round(job.match_score);
+      const tone = score >= 70
+        ? 'bg-emerald-50 text-brand-green border-emerald-200'
+        : score >= 40
+          ? 'bg-orange-50 text-brand-amber border-orange-200'
+          : 'bg-gray-100 text-gray-600 border-gray-200';
+
+      return `<span class="${tone} border text-xs font-bold px-3 py-1 rounded-full">${score}% Match</span>`;
+    }
+
+    function jobCard(job) {
+      const initial = escapeHtml((job.company_name || '?').trim().charAt(0).toUpperCase());
+      const skills = (job.skills || [])
+        .map((skill) => `<span class="bg-gray-100 text-gray-700 font-medium px-2.5 py-1 rounded-md">${escapeHtml(skill)}</span>`)
+        .join('');
+      const typeChip = job.employment_type
+        ? `<span class="bg-brand-light text-brand-dark font-semibold px-2.5 py-1 rounded-md">${escapeHtml(String(job.employment_type).replace('_', ' '))}</span>`
+        : '';
+      const applied = APPLIED.has(job.job_id);
+      const action = applied
+        ? '<button type="button" disabled class="bg-gray-100 text-gray-400 font-semibold text-xs px-4 py-2 rounded-lg cursor-not-allowed">Applied</button>'
+        : `<button type="button" data-job-id="${job.job_id}" class="bg-brand-green hover:bg-emerald-900 text-white font-semibold text-xs px-4 py-2 rounded-lg transition">Apply Now</button>`;
+
+      return `
+        <div class="job-card bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+             data-sector="${escapeHtml(sectorOf(job))}"
+             data-location="${escapeHtml(job.location || '')}"
+             data-title="${escapeHtml(job.title || '')}"
+             data-search="${escapeHtml(`${job.title} ${job.company_name} ${job.location} ${(job.skills || []).join(' ')}`.toLowerCase())}"
+             data-match="${job.match_score === null || job.match_score === undefined ? 0 : Math.round(job.match_score)}"
+             data-created="${job.created_at || ''}">
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-emerald-100 text-brand-green font-bold rounded-xl flex items-center justify-center text-lg">${initial}</div>
+                <div>
+                  <h3 class="font-display font-bold text-gray-900 text-lg leading-snug">${escapeHtml(job.title)}</h3>
+                  <p class="text-xs text-gray-500 font-medium">${escapeHtml(job.company_name)}${job.location ? ' • ' + escapeHtml(job.location) : ''}</p>
+                </div>
+              </div>
+              ${matchBadge(job)}
+            </div>
+
+            <p class="text-xs text-gray-600 line-clamp-2 mb-4 leading-relaxed">${escapeHtml(job.description)}
+            </p>
+
+            <div class="flex flex-wrap gap-2 mb-6 text-xs">${skills}${typeChip}</div>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+            <span class="text-xs font-bold text-gray-900">${escapeHtml(formatSalary(job))}</span>
+            ${action}
+          </div>
+        </div>`;
+    }
+
+    function renderSectors() {
+      const container = document.getElementById('sectorChips');
+      if (!container) return;
+
+      container.querySelectorAll('.sector-chip').forEach((chip) => chip.remove());
+
+      const sectors = [...new Set(JOBS.map(sectorOf))].sort();
+
+      ['All', ...sectors].forEach((sector) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.sector = sector;
+        button.textContent = sector === 'All' ? 'All Sectors' : sector;
+        button.className = chipClasses(sector === currentSectorFilter);
+        button.addEventListener('click', () => filterSector(sector));
+        container.appendChild(button);
+      });
+    }
+
+    /* --------------------------- Filter / sort ------------------------ */
+
+    function filterJobs() {
+      const searchValue = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+      const locationValue = document.getElementById('locationSelect').value;
+      const cards = document.querySelectorAll('.job-card');
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const haystack = card.dataset.search || '';
+        const matchesSearch = !searchValue || haystack.includes(searchValue);
+        const matchesLocation = !locationValue || card.dataset.location === locationValue;
+        const matchesSector = currentSectorFilter === 'All' || card.dataset.sector === currentSectorFilter;
+
+        const visible = matchesSearch && matchesLocation && matchesSector;
+
+        card.classList.toggle('hidden', !visible);
+        if (visible) visibleCount += 1;
+      });
+
+      document.getElementById('resultsCount').innerText = visibleCount;
+    }
+
+    function filterSector(sector) {
+      currentSectorFilter = sector;
+
+      document.querySelectorAll('.sector-chip').forEach((chip) => {
+        chip.className = chipClasses(chip.dataset.sector === sector);
+      });
+
+      filterJobs();
+    }
+
+    function sortJobs(criteria) {
+      currentSort = criteria;
+
+      const grid = document.getElementById('jobListingsGrid');
+      const cards = Array.from(grid.querySelectorAll('.job-card'));
+
+      cards.sort((a, b) => {
+        if (criteria === 'alpha') {
+          return a.dataset.title.localeCompare(b.dataset.title);
+        }
+
+        if (criteria === 'recent') {
+          return new Date(b.dataset.created || 0) - new Date(a.dataset.created || 0);
+        }
+
+        return Number(b.dataset.match) - Number(a.dataset.match);
+      });
+
+      cards.forEach((card) => grid.appendChild(card));
+    }
+
+    /* ------------------------------ Modal ----------------------------- */
+
+    function modalSummary(job) {
+      if (job.match_score === null || job.match_score === undefined) {
+        return 'Upload a CV from your dashboard and this role will be scored against your skills.';
+      }
+
+      const score = Math.round(job.match_score);
+
+      if (job.qualification === 'qualified') {
+        return `Your profile is a ${score}% match and covers the required skills for this role.`;
+      }
+
+      if (job.qualification === 'partially_qualified') {
+        return `Your profile is a ${score}% match. You are close — check the skill gaps on your dashboard before applying.`;
+      }
+
+      return `Your profile is a ${score}% match, below the bar for this role. You can still apply, but expect a stretch.`;
+    }
+
+    function openJobDetail(jobId) {
+      const job = JOBS.find((row) => row.job_id === jobId);
+      if (!job) return;
+
+      activeJobId = jobId;
+
+      const applied = APPLIED.has(jobId);
+      const score = job.match_score === null || job.match_score === undefined
+        ? 'Not scored yet'
+        : `${Math.round(job.match_score)}% Match`;
+
+      document.getElementById('modalTitle').innerText = job.title;
+      document.getElementById('modalCompany').innerText =
+        job.company_name + (job.location ? ' • ' + job.location : '');
+      document.getElementById('modalMatch').innerText = score;
+      document.getElementById('modalLocation').innerText = job.location || 'Not stated';
+      document.getElementById('modalSalary').innerText = formatSalary(job);
+      document.getElementById('modalSummary').innerText = modalSummary(job);
+
+      const confirm = document.getElementById('confirmApply');
+      confirm.disabled = applied;
+      confirm.classList.toggle('opacity-50', applied);
+      confirm.querySelector('span').textContent = applied
+        ? 'Already applied'
+        : 'Confirm & Submit Application';
+
+      document.getElementById('jobDetailModal').classList.remove('hidden');
+      document.getElementById('jobDetailModal').classList.add('flex');
+    }
+
+    function closeJobDetail() {
+      document.getElementById('jobDetailModal').classList.add('hidden');
+      document.getElementById('jobDetailModal').classList.remove('flex');
+    }
+
+    /* ---------------------------- Apply ------------------------------- */
+
+    async function submitApplication() {
+      const confirm = document.getElementById('confirmApply');
+      const label = confirm.querySelector('span');
+
+      if (!AUTH_TOKEN) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      if (!activeJobId || APPLIED.has(activeJobId)) {
+        closeJobDetail();
+        return;
+      }
+
+      confirm.disabled = true;
+      label.textContent = 'Submitting…';
+
+      try {
+        await api('/api/applications', {
+          method: 'POST',
+          body: JSON.stringify({ job_id: activeJobId })
+        });
+
+        APPLIED.add(activeJobId);
+        closeJobDetail();
+        await loadJobs();
+      } catch (error) {
+        if (error.status === 409) {
+          APPLIED.add(activeJobId);
+          closeJobDetail();
+          await loadJobs();
+          return;
+        }
+
+        confirm.disabled = false;
+        label.textContent = 'Confirm & Submit Application';
+        alert(error.message);
+      }
+    }
+
+    document.getElementById('jobListingsGrid').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-job-id]');
+      if (!button) return;
+
+      openJobDetail(Number(button.dataset.jobId));
+    });
+
+    /* ------------------------------ Load ------------------------------ */
+
+    async function loadJobs() {
+      const grid = document.getElementById('jobListingsGrid');
+      const url = AUTH_TOKEN ? '/api/jobs?match=1' : '/api/jobs';
+
+      try {
+        const [jobs, applications] = await Promise.all([
+          api(url),
+          AUTH_TOKEN ? api('/api/applications').catch(() => []) : Promise.resolve([])
+        ]);
+
+        JOBS.length = 0;
+        JOBS.push(...jobs);
+
+        applications.forEach((application) => APPLIED.add(application.job_id));
+
+        renderSectors();
+
+        grid.innerHTML = JOBS.length
+          ? JOBS.map(jobCard).join('')
+          : '<p class="text-sm text-gray-500">No open roles right now. Check back soon.</p>';
+
+        if (window.lucide) lucide.createIcons();
+
+        sortJobs(currentSort);
+        filterJobs();
+      } catch (error) {
+        console.error('Job board load failed:', error);
+        grid.innerHTML = `<p class="text-sm text-red-600">${escapeHtml(error.message)}</p>`;
+      }
+    }
+
+    // Automatically select sector from URL query string on load
+    const sectorParam = new URLSearchParams(window.location.search).get('sector');
+
+    if (sectorParam) {
+      currentSectorFilter = sectorParam;
+    }
+
+    api('/api/ai/status').then(renderAi).catch(() => {});
+
+    loadJobs();
+  </script>
+</body>
+</html>
+    

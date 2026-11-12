@@ -1,0 +1,895 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillMatch AI | Employer Portal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#1A5C32',
+              amber: '#F05A28',
+              dark: '#0D2B17',
+              light: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-brand-light text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- NAVIGATION -->
+  <nav class="bg-brand-green text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex flex-wrap items-center justify-between gap-3">
+
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="bg-brand-amber text-white p-1.5 rounded-lg">
+            <i data-lucide="briefcase" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-xl tracking-tight">SkillMatch AI</span>
+        </a>
+
+        <span class="bg-white/10 text-emerald-200 text-xs px-2.5 py-1 rounded-full font-medium">
+          Employer Portal
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          id="postJobBtn"
+          type="button"
+          class="bg-brand-amber hover:bg-orange-700 text-white font-semibold text-sm px-4 py-2 rounded-lg transition flex items-center gap-2"
+        >
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Post New Job</span>
+        </button>
+
+        <div class="flex items-center gap-3 border-l border-white/20 pl-3">
+          <div id="employerAvatar" class="w-9 h-9 bg-emerald-800 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-600">
+            E
+          </div>
+
+          <div class="hidden sm:block text-left text-xs max-w-48">
+            <p id="employerName" class="font-bold truncate">Loading employer...</p>
+            <p id="companyName" class="text-emerald-100 truncate">Loading company...</p>
+            <p class="text-emerald-200">Employer Account</p>
+          </div>
+        </div>
+
+        <button
+          id="logoutBtn"
+          type="button"
+          class="border border-white/30 hover:bg-white/10 text-white font-semibold text-sm px-3 py-2 rounded-lg flex items-center gap-2"
+        >
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN DASHBOARD -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+      <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900">
+          Employer Dashboard
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Manage your job listings and monitor applications.
+        </p>
+      </div>
+
+      <p id="dashboardUpdated" class="text-xs text-gray-500">
+        Connecting to SkillMatch AI...
+      </p>
+    </div>
+
+    <div id="dashboardMessage" class="hidden mb-6 rounded-xl border p-4 text-sm" role="status"></div>
+
+    <!-- STATISTICS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Active Listings</p>
+        <p id="activeJobs" class="font-display text-2xl font-bold text-gray-900 mt-2">—</p>
+        <span class="text-xs text-gray-500">Currently open jobs</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Total Job Listings</p>
+        <p id="totalJobs" class="font-display text-2xl font-bold text-brand-green mt-2">—</p>
+        <span class="text-xs text-gray-500">Your posted jobs</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Applications Received</p>
+        <p id="totalApplications" class="font-display text-2xl font-bold text-brand-amber mt-2">—</p>
+        <span class="text-xs text-gray-500">Across your jobs</span>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Shortlisted Candidates</p>
+        <p id="shortlistedCandidates" class="font-display text-2xl font-bold text-gray-900 mt-2">—</p>
+        <span class="text-xs text-gray-500">Applications marked shortlisted</span>
+      </div>
+
+    </div>
+
+    <!-- DASHBOARD TABS -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+      <div class="border-b border-gray-200 bg-gray-50 px-4 sm:px-6 pt-4 overflow-x-auto">
+        <div class="flex gap-6 min-w-max">
+
+          <button
+            type="button"
+            onclick="switchEmpTab('pipeline')"
+            id="tab-pipeline"
+            class="emp-tab-btn border-b-2 border-brand-green text-brand-green font-bold pb-4 text-sm flex items-center gap-2"
+          >
+            <i data-lucide="users" class="w-4 h-4"></i>
+            Candidate Pipeline
+          </button>
+
+          <button
+            type="button"
+            onclick="switchEmpTab('postings')"
+            id="tab-postings"
+            class="emp-tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium pb-4 text-sm flex items-center gap-2"
+          >
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            Job Postings
+          </button>
+
+          <button
+            type="button"
+            onclick="switchEmpTab('analytics')"
+            id="tab-analytics"
+            class="emp-tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium pb-4 text-sm flex items-center gap-2"
+          >
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+            Talent Analytics
+          </button>
+
+        </div>
+      </div>
+
+      <!-- CANDIDATE PIPELINE -->
+      <section id="emp-content-pipeline" class="emp-tab-content p-5 sm:p-6">
+
+        <div class="mb-5">
+          <h2 class="font-display text-lg font-bold text-gray-900">Candidate Pipeline</h2>
+          <p class="text-sm text-gray-500 mt-1">Every application received across your listings, newest first.</p>
+        </div>
+
+        <div id="pipelineLoading" class="py-8 text-center text-sm text-gray-500">
+          Loading candidates...
+        </div>
+
+        <div id="pipelineEmpty" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+          <i data-lucide="users" class="w-10 h-10 text-gray-400 mx-auto mb-3"></i>
+          <p class="font-semibold text-gray-700">No applications yet</p>
+          <p class="text-sm text-gray-500 mt-1">Candidates appear here as soon as they apply to one of your listings.</p>
+        </div>
+
+        <div id="pipelineTableContainer" class="hidden overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                <th class="py-3 pr-4">Candidate</th>
+                <th class="py-3 px-4">Role</th>
+                <th class="py-3 px-4">Match</th>
+                <th class="py-3 px-4">Stage</th>
+                <th class="py-3 pl-4 text-right">Applied</th>
+              </tr>
+            </thead>
+            <tbody id="pipelineTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- JOB POSTINGS -->
+      <section id="emp-content-postings" class="emp-tab-content p-5 sm:p-6 hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <div>
+            <h2 class="font-display text-lg font-bold text-gray-900">Your Job Listings</h2>
+            <p class="text-sm text-gray-500 mt-1">Jobs associated with your employer account.</p>
+          </div>
+
+          <button
+            type="button"
+            onclick="openPostJobModal()"
+            class="bg-brand-green hover:bg-emerald-900 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add Job
+          </button>
+        </div>
+
+        <div id="jobsLoading" class="py-8 text-center text-sm text-gray-500">
+          Loading your job listings...
+        </div>
+
+        <div id="jobsEmpty" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+          <i data-lucide="briefcase-business" class="w-10 h-10 text-gray-400 mx-auto mb-3"></i>
+          <p class="font-semibold text-gray-700">No job listings yet</p>
+          <p class="text-sm text-gray-500 mt-1">Use “Add Job” to publish your first listing.</p>
+        </div>
+
+        <div id="jobsTableContainer" class="hidden overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                <th class="py-3 pr-4">Job Title & Location</th>
+                <th class="py-3 px-4">Applicants</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 pl-4 text-right">Job ID</th>
+              </tr>
+            </thead>
+            <tbody id="jobsTableBody" class="divide-y divide-gray-100 text-sm"></tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="emp-content-analytics" class="emp-tab-content p-5 sm:p-6 hidden">
+
+        <h2 class="font-display text-lg font-bold text-gray-900 mb-1">Talent Analytics</h2>
+        <p class="text-sm text-gray-500 mb-6">
+          A summary of the job and application figures currently available from your dashboard API.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+            <h3 class="font-display font-bold text-gray-900 mb-1">Job Listing Overview</h3>
+            <p class="text-xs text-gray-500 mb-4">Total, active and draft listings</p>
+            <div class="h-64">
+              <canvas id="jobsChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+            <h3 class="font-display font-bold text-gray-900 mb-1">Applications by Job</h3>
+            <p class="text-xs text-gray-500 mb-4">Application counts for your latest listings</p>
+            <div class="h-64">
+              <canvas id="applicationsChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <p id="analyticsNote" class="text-xs text-gray-500 mt-4">
+          Charts use the data returned by your employer dashboard API.
+        </p>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- POST JOB MODAL -->
+  <div id="postJobModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 px-4 py-6">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative max-h-full overflow-y-auto">
+
+      <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+        <div>
+          <h3 class="font-display font-bold text-lg text-brand-green">Create New Job Listing</h3>
+          <p class="text-xs text-gray-500 mt-1">Your listing goes live immediately and is scored against seeker skills.</p>
+        </div>
+
+        <button type="button" onclick="closePostJobModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close modal">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="jobForm" class="mt-4 space-y-4">
+
+        <div>
+          <label for="jobTitle" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Job Title</label>
+          <input
+            id="jobTitle"
+            name="title"
+            type="text"
+            placeholder="e.g. Software Developer"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-green"
+            required
+          >
+        </div>
+
+        <div>
+          <label for="jobDescription" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Job Description</label>
+          <textarea
+            id="jobDescription"
+            name="description"
+            rows="4"
+            placeholder="Describe the role and responsibilities..."
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-green"
+            required
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="jobLocation" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Location / County</label>
+          <input
+            id="jobLocation"
+            name="location"
+            type="text"
+            placeholder="e.g. Nairobi"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-green"
+            required
+          >
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <button
+            type="button"
+            onclick="closePostJobModal()"
+            class="px-4 py-2 text-sm text-gray-600 font-medium hover:text-gray-800"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="px-5 py-2 text-sm bg-brand-amber text-white font-semibold rounded-lg hover:bg-orange-700 transition"
+          >
+            Submit Job
+          </button>
+        </div>
+
+        <p id="jobFormMessage" class="hidden text-sm rounded-lg p-3" role="status"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+      &copy; 2026 SkillMatch AI. Connecting Kenyan Talent with Opportunity.
+    </div>
+  </footer>
+
+  <!-- DASHBOARD LOGIC -->
+  <script>
+    const LOGIN_PAGE = '/login.html';
+
+    let dashboardData = null;
+    let jobsChartInstance = null;
+    let applicationsChartInstance = null;
+
+    function getSession() {
+      try {
+        const raw =
+          localStorage.getItem('kaziconnectSession') ||
+          sessionStorage.getItem('kaziconnectSession');
+
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        console.error('Could not read login session:', error);
+        return null;
+      }
+    }
+
+    function showMessage(message, type = 'info') {
+      const box = document.getElementById('dashboardMessage');
+
+      const styles = {
+        info: 'bg-blue-50 border-blue-200 text-blue-800',
+        success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+        error: 'bg-red-50 border-red-200 text-red-800'
+      };
+
+      box.className = 'mb-6 rounded-xl border p-4 text-sm ' + (styles[type] || styles.info);
+      box.textContent = message;
+    }
+
+    function hideMessage() {
+      const box = document.getElementById('dashboardMessage');
+      box.classList.add('hidden');
+      box.textContent = '';
+    }
+
+    async function apiRequest(url, options = {}) {
+      const session = getSession();
+
+      if (!session || !session.token) {
+        throw new Error('Your session is missing. Please log in again.');
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          Authorization: 'Bearer ' + session.token,
+          ...(options.body ? { 'Content-Type': 'application/json' } : {})
+        }
+      });
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      if (response.status === 401) {
+        localStorage.removeItem('kaziconnectSession');
+        sessionStorage.removeItem('kaziconnectSession');
+        window.location.replace(LOGIN_PAGE);
+        throw new Error('Your session has expired. Please log in again.');
+      }
+
+      if (response.status === 403) {
+        throw new Error(
+          'Access denied. Please log out and log in using your employer account.'
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Request failed with status ' + response.status);
+      }
+
+      return data;
+    }
+
+    function logout() {
+      localStorage.removeItem('kaziconnectSession');
+      sessionStorage.removeItem('kaziconnectSession');
+      window.location.replace(LOGIN_PAGE);
+    }
+
+    function getInitials(name) {
+      if (!name) return 'E';
+
+      return name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part[0])
+        .join('')
+        .toUpperCase();
+    }
+
+    function setNumber(elementId, value) {
+      const element = document.getElementById(elementId);
+      element.textContent = Number(value || 0).toLocaleString();
+    }
+
+    function renderProfile(profile, user) {
+      const name = user?.fullName || profile?.full_name || 'Employer';
+      const company = profile?.company_name || 'Company not provided';
+
+      document.getElementById('employerName').textContent = name;
+      document.getElementById('companyName').textContent = company;
+      document.getElementById('employerAvatar').textContent = getInitials(name);
+    }
+
+    function renderStats(stats) {
+      setNumber('activeJobs', stats.active_jobs);
+      setNumber('totalJobs', stats.total_jobs);
+      setNumber('totalApplications', stats.applications_received);
+      setNumber('shortlistedCandidates', stats.shortlisted_candidates);
+    }
+
+    function makeCell(text, className = '') {
+      const cell = document.createElement('td');
+      cell.className = className;
+      cell.textContent = text == null || text === '' ? '—' : String(text);
+      return cell;
+    }
+
+    function renderJobs(jobs) {
+      const loading = document.getElementById('jobsLoading');
+      const empty = document.getElementById('jobsEmpty');
+      const container = document.getElementById('jobsTableContainer');
+      const tbody = document.getElementById('jobsTableBody');
+
+      loading.classList.add('hidden');
+      tbody.replaceChildren();
+
+      if (!jobs || jobs.length === 0) {
+        empty.classList.remove('hidden');
+        container.classList.add('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      jobs.forEach(job => {
+        const row = document.createElement('tr');
+        const titleCell = document.createElement('td');
+        titleCell.className = 'py-4 pr-4';
+
+        const title = document.createElement('p');
+        title.className = 'font-bold text-gray-900';
+        title.textContent = job.title || 'Untitled job';
+
+        const location = document.createElement('p');
+        location.className = 'text-xs text-gray-500 mt-1';
+        location.textContent = job.location || 'Location not specified';
+
+        titleCell.append(title, location);
+
+        const applicantCell = makeCell(
+          job.applications_count || 0,
+          'py-4 px-4 font-semibold text-brand-green'
+        );
+
+        const statusCell = document.createElement('td');
+        statusCell.className = 'py-4 px-4';
+
+        const badge = document.createElement('span');
+        const status = String(job.status || 'unknown').toLowerCase();
+
+        badge.className = 'inline-block text-xs font-bold px-2.5 py-1 rounded-full ';
+
+        if (status === 'open') {
+          badge.className += 'bg-emerald-100 text-emerald-800';
+          badge.textContent = 'Open';
+        } else if (status === 'paused') {
+          badge.className += 'bg-yellow-100 text-yellow-800';
+          badge.textContent = 'Paused';
+        } else if (status === 'draft') {
+          badge.className += 'bg-gray-100 text-gray-700';
+          badge.textContent = 'Draft';
+        } else if (status === 'closed') {
+          badge.className += 'bg-red-100 text-red-800';
+          badge.textContent = 'Closed';
+        } else {
+          badge.className += 'bg-gray-100 text-gray-700';
+          badge.textContent = status;
+        }
+
+        statusCell.appendChild(badge);
+
+        const idCell = makeCell(job.job_id, 'py-4 pl-4 text-right text-gray-500');
+
+        row.append(titleCell, applicantCell, statusCell, idCell);
+        tbody.appendChild(row);
+      });
+    }
+
+    const PIPELINE_STAGES = [
+      'submitted',
+      'under_review',
+      'shortlisted',
+      'interview',
+      'offer',
+      'rejected'
+    ];
+
+    function stageLabel(stage) {
+      const text = String(stage || 'submitted').replace(/_/g, ' ');
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    function stageSelect(application) {
+      const select = document.createElement('select');
+      select.className =
+        'text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-brand-green';
+      select.setAttribute('aria-label', 'Application stage for ' + (application.full_name || 'candidate'));
+
+      PIPELINE_STAGES.forEach((stage) => {
+        const option = document.createElement('option');
+        option.value = stage;
+        option.textContent = stageLabel(stage);
+        option.selected = stage === application.status;
+        select.appendChild(option);
+      });
+
+      select.addEventListener('change', async () => {
+        select.disabled = true;
+
+        try {
+          await apiRequest('/api/employer/applications/' + application.application_id, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: select.value })
+          });
+
+          await loadEmployerDashboard();
+        } catch (error) {
+          select.value = application.status;
+          select.disabled = false;
+          showMessage(error.message || 'Could not update this candidate.', 'error');
+        }
+      });
+
+      return select;
+    }
+
+    function renderPipeline(rows) {
+      const loading = document.getElementById('pipelineLoading');
+      const empty = document.getElementById('pipelineEmpty');
+      const container = document.getElementById('pipelineTableContainer');
+      const tbody = document.getElementById('pipelineTableBody');
+
+      loading.classList.add('hidden');
+      tbody.replaceChildren();
+
+      if (!rows.length) {
+        empty.classList.remove('hidden');
+        container.classList.add('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      rows.forEach((application) => {
+        const row = document.createElement('tr');
+
+        const candidateCell = document.createElement('td');
+        candidateCell.className = 'py-4 pr-4';
+        const name = document.createElement('p');
+        name.className = 'font-bold text-gray-900';
+        name.textContent = application.full_name || 'Candidate';
+        const contact = document.createElement('p');
+        contact.className = 'text-xs text-gray-500 mt-1';
+        contact.textContent = [application.email, application.location].filter(Boolean).join(' • ');
+        candidateCell.append(name, contact);
+
+        const roleCell = makeCell(application.job_title, 'py-4 px-4 text-gray-700');
+
+        const score = application.match_score === null || application.match_score === undefined
+          ? null
+          : Math.round(Number(application.match_score));
+        const matchCell = makeCell(score === null ? '—' : score + '%', 'py-4 px-4 font-semibold text-brand-green');
+
+        const stageCell = document.createElement('td');
+        stageCell.className = 'py-4 px-4';
+        stageCell.appendChild(stageSelect(application));
+
+        const appliedCell = makeCell(
+          application.submitted_at ? new Date(application.submitted_at).toLocaleDateString() : '—',
+          'py-4 pl-4 text-right text-gray-500'
+        );
+
+        row.append(candidateCell, roleCell, matchCell, stageCell, appliedCell);
+        tbody.appendChild(row);
+      });
+    }
+
+    async function loadPipeline() {
+      try {
+        const rows = await apiRequest('/api/employer/applications');
+        renderPipeline(rows);
+      } catch (error) {
+        document.getElementById('pipelineLoading').classList.add('hidden');
+        showMessage(error.message || 'Could not load candidates.', 'error');
+      }
+    }
+
+    function switchEmpTab(tabName) {
+      document.querySelectorAll('.emp-tab-content').forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.emp-tab-btn').forEach(button => {
+        button.classList.remove('border-brand-green', 'text-brand-green', 'font-bold');
+        button.classList.add('border-transparent', 'text-gray-500', 'font-medium');
+      });
+
+      const section = document.getElementById('emp-content-' + tabName);
+      const button = document.getElementById('tab-' + tabName);
+
+      if (!section || !button) return;
+
+      section.classList.remove('hidden');
+      button.classList.remove('border-transparent', 'text-gray-500', 'font-medium');
+      button.classList.add('border-brand-green', 'text-brand-green', 'font-bold');
+
+      if (tabName === 'analytics' && dashboardData) {
+        renderEmployerCharts(dashboardData);
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderEmployerCharts(data) {
+      if (typeof Chart === 'undefined') {
+        document.getElementById('analyticsNote').textContent =
+          'Charts could not load. Check your internet connection.';
+        return;
+      }
+
+      const stats = data.stats || {};
+      const jobs = data.jobs || [];
+
+      if (jobsChartInstance) jobsChartInstance.destroy();
+      if (applicationsChartInstance) applicationsChartInstance.destroy();
+
+      jobsChartInstance = new Chart(
+        document.getElementById('jobsChart').getContext('2d'),
+        {
+          type: 'bar',
+          data: {
+            labels: ['Total Jobs', 'Active Jobs', 'Draft Jobs'],
+            datasets: [{
+              label: 'Listings',
+              data: [
+                Number(stats.total_jobs || 0),
+                Number(stats.active_jobs || 0),
+                Number(stats.draft_jobs || 0)
+              ],
+              backgroundColor: ['#1A5C32', '#299452', '#F05A28']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        }
+      );
+
+      const chartJobs = jobs.slice(0, 8);
+
+      applicationsChartInstance = new Chart(
+        document.getElementById('applicationsChart').getContext('2d'),
+        {
+          type: 'bar',
+          data: {
+            labels: chartJobs.map(job => job.title || 'Untitled job'),
+            datasets: [{
+              label: 'Applications',
+              data: chartJobs.map(job => Number(job.applications_count || 0)),
+              backgroundColor: '#F05A28'
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        }
+      );
+
+      document.getElementById('analyticsNote').textContent =
+        'Charts reflect the figures currently returned by your employer dashboard API.';
+    }
+
+    function openPostJobModal() {
+      const modal = document.getElementById('postJobModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('jobFormMessage').classList.add('hidden');
+    }
+
+    function closePostJobModal() {
+      const modal = document.getElementById('postJobModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function loadEmployerDashboard() {
+      const session = getSession();
+
+      if (!session || !session.token) {
+        window.location.replace(LOGIN_PAGE);
+        return;
+      }
+
+      try {
+        hideMessage();
+
+        const data = await apiRequest('/api/employer/dashboard');
+        dashboardData = data;
+
+        renderProfile(data.profile || {}, data.user || {});
+        renderStats(data.stats || {});
+        renderJobs(data.jobs || []);
+        await loadPipeline();
+
+        document.getElementById('dashboardUpdated').textContent =
+          'Updated ' + new Date().toLocaleTimeString();
+
+        if (window.lucide) lucide.createIcons();
+      } catch (error) {
+        console.error('Employer dashboard error:', error);
+
+        document.getElementById('jobsLoading').classList.add('hidden');
+        showMessage(error.message || 'Could not load employer dashboard.', 'error');
+      }
+    }
+
+    const jobForm = document.getElementById('jobForm');
+    const jobFormMessage = document.getElementById('jobFormMessage');
+
+    function showJobFormMessage(text, type) {
+      const styles = {
+        success: 'text-sm rounded-lg p-3 bg-emerald-50 border border-emerald-200 text-emerald-800',
+        error: 'text-sm rounded-lg p-3 bg-red-50 border border-red-200 text-red-800'
+      };
+
+      jobFormMessage.className = styles[type] || styles.error;
+      jobFormMessage.textContent = text;
+    }
+
+    jobForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const submitBtn = jobForm.querySelector('button[type="submit"]');
+      const title = document.getElementById('jobTitle').value.trim();
+      const description = document.getElementById('jobDescription').value.trim();
+      const location = document.getElementById('jobLocation').value.trim();
+
+      if (!title || !description) {
+        showJobFormMessage('Add a job title and description before submitting.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Posting…';
+
+      try {
+        await apiRequest('/api/jobs', {
+          method: 'POST',
+          body: JSON.stringify({ title, description, location })
+        });
+
+        jobForm.reset();
+        closePostJobModal();
+        await loadEmployerDashboard();
+        showMessage('Job posted. It is now on the job board and will be scored for every job seeker.', 'success');
+      } catch (error) {
+        showJobFormMessage(error.message || 'Could not post this job. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Job';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('postJobBtn').addEventListener('click', openPostJobModal);
+
+    document.getElementById('postJobModal').addEventListener('click', function (event) {
+      if (event.target === this) closePostJobModal();
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closePostJobModal();
+    });
+
+    if (window.lucide) lucide.createIcons();
+
+    loadEmployerDashboard();
+  </script>
+
+</body>
+</html>

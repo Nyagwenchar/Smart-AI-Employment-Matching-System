@@ -1,0 +1,997 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaziConnect | Job Seeker Dashboard</title>
+
+  <!-- Hide the dashboard until the session is verified -->
+  <style>
+    html { visibility: hidden; }
+    html[data-authenticated="true"] { visibility: visible; }
+  </style>
+
+  <!-- Verify the logged-in user -->
+  <script>
+    (async function protectDashboard() {
+      const LOGIN_PAGE = '/login.html';
+      const REQUIRED_ROLE = 'job_seeker';
+
+      const sessionText =
+        localStorage.getItem('kaziconnectSession') ||
+        sessionStorage.getItem('kaziconnectSession');
+
+      function clearSession() {
+        localStorage.removeItem('kaziconnectSession');
+        sessionStorage.removeItem('kaziconnectSession');
+      }
+
+      if (!sessionText) {
+        window.location.replace(LOGIN_PAGE);
+        return;
+      }
+
+      try {
+        const session = JSON.parse(sessionText);
+
+        if (!session.token) {
+          throw new Error('Missing login token');
+        }
+
+        const response = await fetch('/api/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${session.token}`
+          },
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          throw new Error('Session is invalid or expired');
+        }
+
+        const user = await response.json();
+
+        if (user.role !== REQUIRED_ROLE) {
+          clearSession();
+          window.location.replace(LOGIN_PAGE);
+          return;
+        }
+
+        // Display the actual logged-in user's name.
+        const fullName =
+          user.name ||
+          user.full_name ||
+          session.fullName ||
+          'Job Seeker';
+
+        window.currentSkillMatchUser = user;
+
+        document.addEventListener('DOMContentLoaded', function () {
+          const nameElement = document.getElementById('userName');
+          const initialsElement = document.getElementById('userInitials');
+
+          if (nameElement) {
+            nameElement.textContent = fullName;
+          }
+
+          if (initialsElement) {
+            initialsElement.textContent = fullName
+              .trim()
+              .split(/\s+/)
+              .slice(0, 2)
+              .map(part => part.charAt(0).toUpperCase())
+              .join('');
+          }
+        });
+
+        document.documentElement.dataset.authenticated = 'true';
+
+      } catch (error) {
+        console.error('Dashboard authentication failed:', error);
+        clearSession();
+        window.location.replace(LOGIN_PAGE);
+      }
+    })();
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#1A5C32',
+              amber: '#F05A28',
+              dark: '#0D2B17',
+              light: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Icons and charts -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-brand-light text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- NAVIGATION -->
+  <nav class="bg-brand-green text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="bg-brand-amber text-white p-1.5 rounded-lg">
+            <i data-lucide="briefcase" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-xl tracking-tight">KaziConnect</span>
+        </a>
+
+        <span class="bg-white/10 text-emerald-200 text-xs px-2.5 py-1 rounded-full font-medium ml-2">
+          Job Seeker
+        </span>
+
+        <span id="aiBadge" class="hidden text-xs px-2.5 py-1 rounded-full font-medium ml-2">AI</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center space-x-3 border-l border-white/20 pl-4">
+          <div id="userInitials"
+               class="w-9 h-9 bg-brand-amber rounded-full flex items-center justify-center font-bold text-sm">
+            JS
+          </div>
+
+          <div class="hidden sm:block text-left text-xs">
+            <p id="userName" class="font-bold">Loading profile...</p>
+            <p class="text-emerald-200">Job Seeker</p>
+          </div>
+        </div>
+
+        <button id="logoutButton"
+                type="button"
+                class="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-sm font-semibold">
+          Log out
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- MAIN DASHBOARD -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- PROFILE AND STATISTICS -->
+    <div class="grid lg:grid-cols-4 gap-6 mb-8">
+
+      <!-- Profile strength -->
+      <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center space-x-5">
+        <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+            <path class="text-gray-200" stroke-width="3.5" stroke="currentColor" fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path id="bestMatchRing" class="text-brand-green" stroke-dasharray="0, 100" stroke-width="3.5"
+              stroke-linecap="round" stroke="currentColor" fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span id="bestMatchScore" class="absolute font-display font-bold text-lg text-brand-green">—</span>
+        </div>
+
+        <div>
+          <h3 class="font-display font-bold text-gray-900">Best Match</h3>
+          <p class="text-xs text-gray-500 mt-1">Your strongest fit on the board right now.</p>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="lg:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">AI Matches</p>
+          <p id="statMatches" class="font-display text-2xl font-bold text-brand-green mt-1">—</p>
+          <span class="text-xs text-gray-500 mt-1">Jobs scored for you</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Qualified</p>
+          <p id="statQualified" class="font-display text-2xl font-bold text-brand-green mt-1">—</p>
+          <span class="text-xs text-gray-500 mt-1">Where you clear the bar</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Applications</p>
+          <p id="statApplications" class="font-display text-2xl font-bold text-gray-900 mt-1">—</p>
+          <span class="text-xs text-gray-500 mt-1">Submitted applications</span>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+          <p class="text-xs text-gray-500 font-semibold uppercase">Skills</p>
+          <p id="statSkills" class="font-display text-2xl font-bold text-brand-amber mt-1">—</p>
+          <span class="text-xs text-gray-500 mt-1">Read from your CV</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CV UPLOAD -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 class="font-display font-bold text-gray-900">Your CV drives the matching</h3>
+          <p id="cvStatus" class="text-xs text-gray-500 mt-1">
+            Upload a PDF or DOCX and we will read your skills, education and years of experience.
+          </p>
+        </div>
+        <form id="cvForm" class="flex flex-wrap items-center gap-3">
+          <input id="cvFile" name="cv" type="file" accept=".pdf,.docx"
+            class="text-xs text-gray-600 file:mr-3 file:px-4 file:py-2 file:rounded-lg file:border-0 file:bg-brand-green file:text-white file:text-xs file:font-semibold">
+          <button type="submit" id="cvButton"
+            class="bg-brand-amber text-white font-semibold px-5 py-2.5 rounded-lg text-sm hover:opacity-90">
+            Analyse CV
+          </button>
+        </form>
+      </div>
+      <div id="cvResult" class="mt-4 hidden">
+        <div id="cvSkills" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD TABS -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+      <div class="border-b border-gray-200 bg-gray-50/50 px-6 pt-4">
+        <div class="flex flex-wrap gap-x-8">
+
+          <button onclick="switchTab('matches')" id="tab-matches"
+            class="tab-btn border-b-2 border-brand-green text-brand-green font-bold pb-4 text-sm flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            AI Matches
+          </button>
+
+          <button onclick="switchTab('skillgap')" id="tab-skillgap"
+            class="tab-btn border-b-2 border-transparent text-gray-500 font-medium pb-4 text-sm flex items-center gap-2">
+            <i data-lucide="radar" class="w-4 h-4"></i>
+            Skill Gap Analysis
+          </button>
+
+          <button onclick="switchTab('applications')" id="tab-applications"
+            class="tab-btn border-b-2 border-transparent text-gray-500 font-medium pb-4 text-sm flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            Applications Tracker
+          </button>
+
+        </div>
+      </div>
+
+      <!-- AI MATCHES -->
+      <section id="content-matches" class="tab-content p-6">
+
+        <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+          <input type="text"
+            placeholder="Search matched roles, skills, or companies..."
+            class="w-full sm:max-w-md px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-green">
+
+          <select class="border border-gray-200 rounded-xl text-sm px-4 py-2.5">
+            <option>Sort by: Match Score (Highest)</option>
+            <option>Sort by: Newest First</option>
+          </select>
+        </div>
+
+        <div id="matchList" class="space-y-4">
+          <p class="text-sm text-gray-500">Scoring your profile against open roles…</p>
+        </div>
+
+        <div class="mt-8">
+          <h4 class="font-display font-bold text-gray-900 mb-1">You might also fit</h4>
+          <p class="text-xs text-gray-500 mb-4">Similar roles in the same career track, excluding jobs you already applied to.</p>
+          <div id="recommendationList" class="grid sm:grid-cols-2 gap-4"></div>
+        </div>
+      </section>
+
+      <!-- SKILL GAP ANALYSIS -->
+      <section id="content-skillgap" class="tab-content p-6 hidden">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+
+          <div>
+            <h3 class="font-display font-bold text-xl text-gray-900 mb-2">Competency vs. Market Demand</h3>
+            <p id="radarCaption" class="text-sm text-gray-600 mb-6">
+              Upload a CV to compare your skills with what open roles ask for.
+            </p>
+            <div class="w-full max-w-md mx-auto">
+              <canvas id="skillRadarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="p-5 bg-brand-light rounded-xl border border-gray-200">
+              <h4 class="font-display font-bold text-brand-green mb-3">What is holding your score back</h4>
+              <div id="gapList" class="space-y-3">
+                <p class="text-xs text-gray-500">Upload a CV to see your skill gaps.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPLICATIONS TRACKER -->
+      <section id="content-applications" class="tab-content p-6 hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                <th class="pb-3">Company & Role</th>
+                <th class="pb-3">Applied Date</th>
+                <th class="pb-3">AI Match</th>
+                <th class="pb-3">Status</th>
+                <th class="pb-3 text-right">Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="applicationRows" class="divide-y divide-gray-100 text-sm">
+              <tr>
+                <td class="py-4 text-sm text-gray-500" colspan="5">No applications yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- TAB SWITCHING AND CHART -->
+  <script>
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.tab-btn').forEach(button => {
+        button.classList.remove(
+          'border-brand-green',
+          'text-brand-green',
+          'font-bold'
+        );
+        button.classList.add(
+          'border-transparent',
+          'text-gray-500',
+          'font-medium'
+        );
+      });
+
+      const content = document.getElementById('content-' + tabId);
+      const activeButton = document.getElementById('tab-' + tabId);
+
+      if (!content || !activeButton) return;
+
+      content.classList.remove('hidden');
+
+      activeButton.classList.add(
+        'border-brand-green',
+        'text-brand-green',
+        'font-bold'
+      );
+      activeButton.classList.remove(
+        'border-transparent',
+        'text-gray-500',
+        'font-medium'
+      );
+
+      if (tabId === 'skillgap' && !window.radarChartInstance) {
+        initRadarChart();
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* AI engine badge                                                     */
+    /* ------------------------------------------------------------------ */
+
+    // Tier 1 Gemini, tier 2 an OpenAI-compatible backup, tier 3 an embedded
+    // GGUF model, tier 4 the deterministic engine. The badge names whichever
+    // one will answer the next request.
+    const AI_TIER_LABELS = { gemini: 'Gemini', hosted: 'Backup model', local: 'Local model' };
+
+    function renderAi(ai) {
+      const badge = document.getElementById('aiBadge');
+      if (!badge || !ai) return;
+
+      badge.classList.remove('hidden');
+
+      const tiers = Array.isArray(ai.tiers) ? ai.tiers : [];
+      const active = ai.active_tier || (ai.mode && ai.mode !== 'offline' ? ai.mode : null);
+      const entry = active ? tiers.find((tier) => tier.tier === active) : null;
+      const configured = tiers.some((tier) => tier.configured) ||
+        Boolean(ai.online && ai.online.configured);
+
+      if (active) {
+        const label = AI_TIER_LABELS[active] || active;
+        const model = (entry && entry.model) || (ai.online && ai.online.model) || '';
+
+        badge.textContent = model ? `AI: ${label} (${model})` : `AI: ${label}`;
+        badge.className = active === 'gemini'
+          ? 'bg-white text-brand-green text-xs px-2.5 py-1 rounded-full font-semibold ml-2'
+          : 'bg-amber-200 text-amber-900 text-xs px-2.5 py-1 rounded-full font-semibold ml-2';
+      } else {
+        badge.textContent = configured
+          ? 'AI: Offline engine (models busy)'
+          : 'AI: Offline engine';
+        badge.className = 'bg-white/15 text-emerald-100 text-xs px-2.5 py-1 rounded-full font-medium ml-2';
+      }
+
+      const notes = {
+        gemini: 'Gemini answers first; the backup model, the local model and finally the offline engine take over if it fails.',
+        hosted: 'Gemini is unavailable, so the backup model is answering. The local model and the offline engine are next.',
+        local: 'Both hosted models are unavailable; the embedded local model is answering. The offline engine is the last resort.'
+      };
+
+      badge.title = notes[active] || (ai.reason
+        ? `Offline engine active: ${ai.reason}`
+        : 'Match percentages and recommendations keep the same format in every mode.');
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Live dashboard data                                                 */
+    /* ------------------------------------------------------------------ */
+
+    const authSessionText =
+      localStorage.getItem('kaziconnectSession') ||
+      sessionStorage.getItem('kaziconnectSession');
+
+    const authSession = authSessionText ? JSON.parse(authSessionText) : {};
+    const AUTH_TOKEN = authSession.token || '';
+
+    const QUALIFICATION = {
+      qualified: {
+        label: 'Qualified',
+        classes: 'bg-green-50 text-green-700 border-green-200'
+      },
+      partially_qualified: {
+        label: 'Partially qualified',
+        classes: 'bg-orange-50 text-brand-amber border-orange-200'
+      },
+      not_qualified: {
+        label: 'Not yet qualified',
+        classes: 'bg-gray-100 text-gray-600 border-gray-200'
+      }
+    };
+
+    const RANK_SCORE = {
+      beginner: 25,
+      intermediate: 50,
+      advanced: 75,
+      expert: 100
+    };
+
+    function api(path, options) {
+      const settings = options || {};
+      const headers = Object.assign(
+        { Authorization: `Bearer ${AUTH_TOKEN}` },
+        settings.body instanceof FormData ? {} : { 'Content-Type': 'application/json' },
+        settings.headers || {}
+      );
+
+      return fetch(path, Object.assign({}, settings, { headers, cache: 'no-store' }))
+        .then(async (response) => {
+          const payload = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            const error = new Error(
+              (payload && payload.error) || `Request failed (${response.status})`
+            );
+            error.status = response.status;
+            throw error;
+          }
+
+          return payload;
+        });
+    }
+
+    function escapeHtml(value) {
+      return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) return '';
+
+      return date.toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+
+    function qualificationPill(qualification) {
+      const meta = QUALIFICATION[qualification] || QUALIFICATION.not_qualified;
+
+      return `<span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full border ${meta.classes}">${meta.label}</span>`;
+    }
+
+    /* ---------------------------- Renderers --------------------------- */
+
+    function renderStats(data) {
+      const stats = data.stats || {};
+
+      setText('statMatches', stats.ai_matches ?? 0);
+      setText('statQualified', stats.qualified_matches ?? 0);
+      setText('statApplications', stats.applications ?? 0);
+      setText('statSkills', stats.skills ?? 0);
+    }
+
+    function renderBestMatch(matches) {
+      const ring = document.getElementById('bestMatchRing');
+      const best = matches[0];
+
+      if (!best) {
+        setText('bestMatchScore', '—');
+        if (ring) ring.setAttribute('stroke-dasharray', '0, 100');
+        return;
+      }
+
+      const score = Math.round(best.match_score);
+
+      setText('bestMatchScore', `${score}%`);
+      if (ring) ring.setAttribute('stroke-dasharray', `${score}, 100`);
+    }
+
+    function renderMatches(matches, appliedIds) {
+      const container = document.getElementById('matchList');
+      if (!container) return;
+
+      if (!matches.length) {
+        container.innerHTML = `
+          <div class="border border-dashed border-gray-300 rounded-xl p-6 text-center">
+            <p class="text-sm font-semibold text-gray-700">No matches yet</p>
+            <p class="text-xs text-gray-500 mt-1">Upload your CV above and every open job gets scored for you.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = matches.map((match) => {
+        const applied = appliedIds.has(match.job_id);
+        const score = Number(match.match_score || 0).toFixed(0);
+        const meta = [
+          match.company_name,
+          match.location,
+          match.employment_type,
+          match.workplace_type
+        ]
+          .filter(Boolean)
+          .map(escapeHtml)
+          .join(' · ');
+
+        return `
+          <article class="border border-gray-200 rounded-xl p-5 hover:border-brand-green transition">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h4 class="font-display font-bold text-gray-900">${escapeHtml(match.title)}</h4>
+                  ${qualificationPill(match.qualification)}
+                </div>
+                <p class="text-xs text-gray-500 mt-1">${meta}</p>
+                <p class="text-sm text-gray-600 mt-3">${escapeHtml(match.matching_reason)}</p>
+                <div class="flex flex-wrap gap-2 mt-3 text-xs">
+                  <span class="bg-brand-light text-brand-dark px-2.5 py-1 rounded-full font-semibold">
+                    ${match.matched_required_skills_count}/${match.required_skills_count} required skills
+                  </span>
+                  <span class="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-semibold">
+                    ${match.matched_preferred_skills_count}/${match.preferred_skills_count} preferred skills
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex sm:flex-col items-center sm:items-end gap-3 sm:min-w-[120px]">
+                <p class="font-display text-3xl font-bold text-brand-green">${score}%</p>
+                <button type="button" data-apply="${match.job_id}" ${applied ? 'disabled' : ''}
+                  class="px-4 py-2 rounded-lg text-sm font-semibold ${applied
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-brand-green text-white hover:opacity-90'}">
+                  ${applied ? 'Applied' : 'Apply'}
+                </button>
+              </div>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderRecommendations(recommendations, appliedIds) {
+      const container = document.getElementById('recommendationList');
+      if (!container) return;
+
+      if (!recommendations.length) {
+        container.innerHTML =
+          '<p class="text-xs text-gray-500">Nothing similar yet — we need a few scored jobs to compare against.</p>';
+        return;
+      }
+
+      container.innerHTML = recommendations.map((job) => {
+        const applied = appliedIds.has(job.job_id);
+        const score = Number(job.match_score || 0).toFixed(0);
+        const where = job.location ? ` · ${escapeHtml(job.location)}` : '';
+
+        return `
+          <article class="border border-gray-200 rounded-xl p-4 bg-brand-light">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h5 class="font-semibold text-sm text-gray-900">${escapeHtml(job.title)}</h5>
+                <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(job.company_name)}${where}</p>
+              </div>
+              <span class="text-sm font-bold text-brand-green">${score}%</span>
+            </div>
+            <p class="text-xs text-gray-600 mt-3">
+              Similar to ${escapeHtml(job.because_of)} · ${job.similarity}% alike
+            </p>
+            <div class="flex items-center justify-between gap-2 mt-3">
+              ${qualificationPill(job.qualification)}
+              <button type="button" data-apply="${job.job_id}" ${applied ? 'disabled' : ''}
+                class="text-xs font-semibold ${applied ? 'text-gray-400' : 'text-brand-green hover:underline'}">
+                ${applied ? 'Applied' : 'Apply'}
+              </button>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderGaps(gaps) {
+      const container = document.getElementById('gapList');
+      if (!container) return;
+
+      if (!gaps.length) {
+        container.innerHTML =
+          '<p class="text-xs text-gray-500">No gaps recorded yet — upload a CV and we will list what to learn next.</p>';
+        return;
+      }
+
+      container.innerHTML = gaps.slice(0, 6).map((gap) => {
+        const label = gap.gap_type === 'missing' ? 'Missing' : 'Below level';
+        const tone = gap.importance === 'required'
+          ? 'bg-orange-50 text-brand-amber border-orange-200'
+          : 'bg-gray-100 text-gray-600 border-gray-200';
+        const level = gap.current_proficiency
+          ? `${escapeHtml(gap.current_proficiency)} → ${escapeHtml(gap.required_proficiency)}`
+          : `needs ${escapeHtml(gap.required_proficiency)}`;
+
+        return `
+          <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-sm font-semibold text-gray-900">${escapeHtml(gap.skill_name)}</p>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border ${tone}">${label}</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">${escapeHtml(gap.job_title)} · ${level}</p>
+            ${gap.recommendation ? `<p class="text-xs text-gray-600 mt-2">${escapeHtml(gap.recommendation)}</p>` : ''}
+          </div>`;
+      }).join('');
+    }
+
+    function renderApplications(applications) {
+      const body = document.getElementById('applicationRows');
+      if (!body) return;
+
+      if (!applications.length) {
+        body.innerHTML =
+          '<tr><td class="py-4 text-sm text-gray-500" colspan="5">No applications yet.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = applications.map((application) => {
+        const score = application.match_score === null || application.match_score === undefined
+          ? '—'
+          : `${Number(application.match_score).toFixed(0)}%`;
+
+        return `
+          <tr>
+            <td class="py-4 pr-4">
+              <p class="font-semibold text-gray-900">${escapeHtml(application.title)}</p>
+              <p class="text-xs text-gray-500">${escapeHtml(application.company_name)}</p>
+            </td>
+            <td class="py-4 pr-4 text-gray-600">${formatDate(application.submitted_at)}</td>
+            <td class="py-4 pr-4 font-semibold text-brand-green">${score}</td>
+            <td class="py-4 pr-4">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-light text-brand-dark capitalize">
+                ${escapeHtml(application.status)}
+              </span>
+            </td>
+            <td class="py-4 text-right">
+              <a href="job-listings.html" class="text-xs font-semibold text-brand-green hover:underline">View jobs</a>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function setCvStatus(message, tone) {
+      const element = document.getElementById('cvStatus');
+      if (!element) return;
+
+      element.textContent = message;
+      element.className = 'text-xs mt-1 ' + (
+        tone === 'error' ? 'text-red-600' :
+        tone === 'ok' ? 'text-brand-green' :
+        'text-gray-500'
+      );
+    }
+
+    function renderCv(cv) {
+      const result = document.getElementById('cvResult');
+      const chips = document.getElementById('cvSkills');
+
+      if (!cv || !cv.parsed_json) {
+        setCvStatus('No CV on file yet. Upload a PDF or DOCX to unlock matching.', 'idle');
+        if (result) result.classList.add('hidden');
+        return;
+      }
+
+      const parsed = cv.parsed_json;
+      const skills = parsed.skills || [];
+      const parts = [`Analysed ${formatDate(cv.parsed_at || cv.created_at)}`];
+
+      if (parsed.career_track) parts.push(parsed.career_track);
+      if (parsed.years_experience) parts.push(`${parsed.years_experience} yrs experience`);
+      if (parsed.education_level) parts.push(parsed.education_level);
+
+      setCvStatus(`${cv.original_name} · ${parts.join(' · ')}`, 'ok');
+
+      if (!chips || !result) return;
+
+      chips.innerHTML = skills.map((skill) => `
+        <span class="text-xs font-semibold bg-brand-light text-brand-dark px-2.5 py-1 rounded-full">
+          ${escapeHtml(skill.name)} <span class="text-brand-green">· ${escapeHtml(skill.proficiency)}</span>
+        </span>`).join('');
+
+      result.classList.toggle('hidden', !skills.length);
+    }
+
+    /* ------------------------------ Radar ----------------------------- */
+
+    function radarPayload(data) {
+      const gaps = (data.skillGaps || []).slice(0, 6);
+
+      if (gaps.length >= 3) {
+        return {
+          caption: 'Your level against what these roles ask for.',
+          labels: gaps.map((gap) => gap.skill_name),
+          current: gaps.map((gap) => RANK_SCORE[gap.current_proficiency] || 0),
+          required: gaps.map((gap) => RANK_SCORE[gap.required_proficiency] || 0)
+        };
+      }
+
+      const skills = (data.cv && data.cv.parsed_json && data.cv.parsed_json.skills) || [];
+      const top = skills.slice(0, 6);
+
+      return {
+        caption: top.length
+          ? 'Your skills, as read from your CV.'
+          : 'Upload a CV to plot your skill profile.',
+        labels: top.map((skill) => skill.name),
+        current: top.map((skill) => RANK_SCORE[skill.proficiency] || 0),
+        required: top.map(() => null)
+      };
+    }
+
+    function radarDatasets(payload) {
+      const datasets = [
+        {
+          label: 'Your CV',
+          data: payload.current,
+          fill: true,
+          backgroundColor: 'rgba(26, 92, 50, 0.2)',
+          borderColor: '#1A5C32',
+          pointBackgroundColor: '#1A5C32'
+        }
+      ];
+
+      if (payload.required.some((value) => value !== null)) {
+        datasets.push({
+          label: 'What the job wants',
+          data: payload.required,
+          fill: true,
+          backgroundColor: 'rgba(240, 90, 40, 0.2)',
+          borderColor: '#F05A28',
+          pointBackgroundColor: '#F05A28'
+        });
+      }
+
+      return datasets;
+    }
+
+    function updateRadarCaption(payload) {
+      const caption = document.getElementById('radarCaption');
+      if (caption) caption.textContent = payload.caption;
+    }
+
+    function initRadarChart() {
+      const canvas = document.getElementById('skillRadarChart');
+      if (!canvas || !window.Chart) return;
+
+      const payload = radarPayload(window.dashboardData || {});
+      updateRadarCaption(payload);
+
+      if (!payload.labels.length) return;
+
+      window.radarChartInstance = new Chart(canvas.getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: payload.labels,
+          datasets: radarDatasets(payload)
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          scales: {
+            r: { min: 0, max: 100 }
+          }
+        }
+      });
+    }
+
+    function refreshRadar() {
+      if (!window.radarChartInstance) return;
+
+      const payload = radarPayload(window.dashboardData || {});
+      updateRadarCaption(payload);
+
+      window.radarChartInstance.data.labels = payload.labels;
+      window.radarChartInstance.data.datasets = radarDatasets(payload);
+      window.radarChartInstance.update();
+    }
+
+    /* ----------------------------- Actions ---------------------------- */
+
+    async function applyToJob(jobId, button) {
+      const original = button.textContent;
+
+      button.disabled = true;
+      button.textContent = 'Applying…';
+
+      try {
+        await api('/api/applications', {
+          method: 'POST',
+          body: JSON.stringify({ job_id: jobId })
+        });
+
+        await loadDashboard();
+      } catch (error) {
+        if (error.status === 409) {
+          button.textContent = 'Applied';
+          return;
+        }
+
+        button.disabled = false;
+        button.textContent = original;
+        alert(error.message);
+      }
+    }
+
+    document.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-apply]');
+      if (!button) return;
+
+      applyToJob(Number(button.dataset.apply), button);
+    });
+
+    async function loadDashboard() {
+      const matchList = document.getElementById('matchList');
+
+      if (matchList) {
+        matchList.innerHTML =
+          '<p class="text-sm text-gray-500">Scoring your profile against open roles…</p>';
+      }
+
+      try {
+        const [data, applications] = await Promise.all([
+          api('/api/job-seeker/dashboard'),
+          api('/api/applications').catch(() => [])
+        ]);
+
+        window.dashboardData = data;
+
+        const appliedIds = new Set(
+          applications.map((application) => application.job_id)
+        );
+
+        renderStats(data);
+        renderAi(data.ai);
+        renderBestMatch(data.matches || []);
+        renderMatches(data.matches || [], appliedIds);
+        renderRecommendations(data.recommendations || [], appliedIds);
+        renderGaps(data.skillGaps || []);
+        renderApplications(applications);
+        renderCv(data.cv);
+        refreshRadar();
+      } catch (error) {
+        console.error('Dashboard load failed:', error);
+
+        if (matchList) {
+          matchList.innerHTML = `<p class="text-sm text-red-600">${escapeHtml(error.message)}</p>`;
+        }
+      }
+    }
+
+    /* --------------------------- CV upload ---------------------------- */
+
+    const cvForm = document.getElementById('cvForm');
+
+    if (cvForm) {
+      cvForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const input = document.getElementById('cvFile');
+        const button = document.getElementById('cvButton');
+        const file = input && input.files ? input.files[0] : null;
+
+        if (!file) {
+          setCvStatus('Choose a PDF or DOCX file first.', 'error');
+          return;
+        }
+
+        const body = new FormData();
+        body.append('cv', file);
+
+        button.disabled = true;
+        button.textContent = 'Analysing…';
+        setCvStatus(`Reading ${file.name}…`, 'idle');
+
+        try {
+          const result = await api('/api/cv', { method: 'POST', body });
+
+          setCvStatus(
+            `${file.name} · read ${result.skills.length} skills · scored ${result.jobs_scored} open jobs`,
+            'ok'
+          );
+
+          input.value = '';
+          await loadDashboard();
+        } catch (error) {
+          setCvStatus(error.message, 'error');
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Analyse CV';
+        }
+      });
+    }
+
+    loadDashboard();
+
+    // Logout
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      localStorage.removeItem('kaziconnectSession');
+      sessionStorage.removeItem('kaziconnectSession');
+
+      window.location.replace('/login.html');
+    });
+  </script>
+
+</body>
+</html>

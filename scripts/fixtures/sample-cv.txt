@@ -1,0 +1,29 @@
+BRIAN OTIENO
+Nairobi, Kenya | brian.otieno@example.com | +254 712 345 678
+
+PROFESSIONAL SUMMARY
+Full stack developer with 5 years of experience building web applications for
+fintech and logistics companies. Strong in JavaScript and React, comfortable
+owning backend services in Node.js.
+
+TECHNICAL SKILLS
+- JavaScript (advanced), TypeScript, React, Next.js
+- Node.js, Express, REST API design
+- PostgreSQL, MongoDB
+- Git, GitHub Actions, Docker
+- Basic exposure to Kubernetes
+- AWS (EC2, S3)
+
+EXPERIENCE
+Software Engineer, Savanna Pay (2021 - present)
+- Built payment dashboards in React serving 40k users
+- Designed REST APIs in Node.js backed by PostgreSQL
+- Containerised services with Docker and set up CI/CD
+
+Junior Developer, Tembo Logistics (2019 - 2021)
+- Maintained an internal Django service
+- Wrote unit testing suites with Jest
+
+EDUCATION
+BSc Computer Science, University of Nairobi, 2019
+KCSE, Kisumu Boys High School, 2014

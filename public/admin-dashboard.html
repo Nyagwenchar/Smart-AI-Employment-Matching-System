@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaziConnect | Admin Portal</title>
+
+  <!-- Fonts: Outfit (Display) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              green: '#1A5C32',
+              amber: '#F05A28',
+              dark: '#0D2B17',
+              light: '#F4F7F5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons & Chart.js CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-brand-light text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- NAVIGATION BAR -->
+  <nav class="bg-brand-dark text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="bg-brand-amber text-white p-1.5 rounded-lg">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <span class="font-display font-bold text-xl tracking-tight">KaziConnect</span>
+        </a>
+        <span class="bg-white/10 text-amber-300 text-xs px-2.5 py-1 rounded-full font-medium ml-2">Platform Control</span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <button id="exportBtn" class="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Export Platform Report</span>
+        </button>
+        <button id="logoutBtn" class="bg-white/10 hover:bg-white/20 text-white font-semibold text-xs px-3.5 py-2 rounded-lg transition flex items-center space-x-1.5">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Sign out</span>
+        </button>
+        <div class="flex items-center space-x-3 border-l border-white/20 pl-4">
+          <div id="adminAvatar" class="w-9 h-9 bg-brand-amber rounded-full flex items-center justify-center font-bold text-sm text-white">
+            A
+          </div>
+          <div class="hidden sm:block text-left text-xs">
+            <p id="adminNavName" class="font-bold">Administrator</p>
+            <p class="text-amber-200">National Oversight</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN ADMIN CONTENT -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-6">
+      <div>
+        <h1 class="font-display text-2xl font-bold text-gray-900">Platform Overview</h1>
+        <p class="text-xs text-gray-500">Live figures read directly from the platform database.</p>
+      </div>
+      <p id="dashboardUpdated" class="text-xs text-gray-500"></p>
+    </div>
+
+    <div id="adminMessage" class="hidden"></div>
+
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Total Registered Users</p>
+        <p id="statUsersValue" class="font-display text-2xl font-bold text-gray-900 mt-1">&mdash;</p>
+        <span id="statUsersNote" class="text-xs text-gray-500 mt-1 block">Loading&hellip;</span>
+      </div>
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Placement Success</p>
+        <p id="statPlacementValue" class="font-display text-2xl font-bold text-brand-green mt-1">&mdash;</p>
+        <span id="statPlacementNote" class="text-xs text-gray-500 mt-1 block">Loading&hellip;</span>
+      </div>
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Verified Employers</p>
+        <p id="statEmployersValue" class="font-display text-2xl font-bold text-brand-amber mt-1">&mdash;</p>
+        <span id="statEmployersNote" class="text-xs text-gray-500 mt-1 block">Loading&hellip;</span>
+      </div>
+      <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <p class="text-xs text-gray-500 font-semibold uppercase">Active AI Matches</p>
+        <p id="statMatchesValue" class="font-display text-2xl font-bold text-gray-900 mt-1">&mdash;</p>
+        <span id="statMatchesNote" class="text-xs text-gray-500 mt-1 block">Loading&hellip;</span>
+      </div>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- LEFT COLUMN: CHARTS & USER MANAGEMENT (2/3 width) -->
+      <div class="lg:col-span-2 space-y-8">
+
+        <!-- CHART 1: MONTHLY PLACEMENT TRENDS -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="font-display font-bold text-gray-900 text-lg">National Placement Velocity</h3>
+              <p class="text-xs text-gray-500">Monthly job placements generated by AI matching engine</p>
+            </div>
+            <span class="text-xs bg-emerald-50 text-brand-green font-bold px-3 py-1 rounded-full border border-emerald-200">Live Data</span>
+          </div>
+          <div class="h-64">
+            <canvas id="placementsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- USER MANAGEMENT TABLE -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="font-display font-bold text-gray-900 text-lg">Platform User Directory</h3>
+              <p class="text-xs text-gray-500">Manage accounts, verification status, and permissions</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
+              <input id="userSearch" type="text" placeholder="Search users or companies..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-green">
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50/50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                  <th class="py-3 px-6">User / Entity</th>
+                  <th class="py-3 px-6">Role</th>
+                  <th class="py-3 px-6">Location / Company</th>
+                  <th class="py-3 px-6 text-right">Joined</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody" class="divide-y divide-gray-100 text-sm">
+                <tr>
+                  <td colspan="4" class="py-6 px-6 text-sm text-gray-500">Loading accounts&hellip;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: COUNTY BREAKDOWN & ACTIVITY FEED (1/3 width) -->
+      <div class="space-y-8">
+        
+        <!-- COUNTY REACH DOUGHNUT CHART (for county placement) -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <h3 class="font-display font-bold text-gray-900 text-lg mb-1">County Placement Reach</h3>
+          <p class="text-xs text-gray-500 mb-4">Geographic distribution of matched candidates</p>
+          <div class="h-56 relative flex justify-center items-center">
+            <canvas id="countyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- REAL-TIME PLATFORM ACTIVITY FEED -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <h3 class="font-display font-bold text-gray-900 text-lg mb-4">Live Platform Activity</h3>
+          <div id="activityFeed" class="space-y-4">
+            <p class="text-xs text-gray-500">Loading activity&hellip;</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+      &copy; 2026 KaziConnect Platform Administration • Republic of Kenya
+    </div>
+  </footer>
+
+  <!-- DASHBOARD LOGIC -->
+  <script>
+    const LOGIN_PAGE = '/login.html';
+
+    const ROLE_LABELS = {
+      job_seeker: 'Job Seeker',
+      employer: 'Employer',
+      admin: 'Admin'
+    };
+
+    const ACTIVITY_TITLES = {
+      application: 'New job application',
+      job: 'New job listing',
+      signup: 'New account created'
+    };
+
+    const ACTIVITY_ICONS = {
+      application: 'file-text',
+      job: 'briefcase',
+      signup: 'user-plus'
+    };
+
+    let directoryRows = [];
+    let placementsChartInstance = null;
+    let countyChartInstance = null;
+
+    function getSession() {
+      try {
+        const raw =
+          localStorage.getItem('kaziconnectSession') ||
+          sessionStorage.getItem('kaziconnectSession');
+
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('kaziconnectSession');
+      sessionStorage.removeItem('kaziconnectSession');
+      window.location.replace(LOGIN_PAGE);
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString();
+    }
+
+    function relativeTime(value) {
+      const then = new Date(value).getTime();
+      if (!Number.isFinite(then)) return '';
+
+      const minutes = Math.round((Date.now() - then) / 60000);
+      if (minutes < 1) return 'just now';
+      if (minutes < 60) return minutes + ' min ago';
+
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return hours + ' h ago';
+
+      return Math.round(hours / 24) + ' d ago';
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+
+    function showBanner(message, type) {
+      const box = document.getElementById('adminMessage');
+      if (!box) return;
+
+      const styles = {
+        error: 'mb-6 rounded-xl border p-4 text-sm bg-red-50 border-red-200 text-red-800',
+        info: 'mb-6 rounded-xl border p-4 text-sm bg-blue-50 border-blue-200 text-blue-800'
+      };
+
+      box.className = styles[type] || styles.info;
+      box.textContent = message;
+    }
+
+    async function api(path) {
+      const session = getSession();
+
+      const response = await fetch(path, {
+        headers: { Authorization: 'Bearer ' + session.token }
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        logout();
+        throw new Error('Your session expired. Please log in again.');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Request failed with status ' + response.status);
+      }
+
+      return data;
+    }
+
+    function renderStats(stats) {
+      setText('statUsersValue', formatNumber(stats.total_users));
+      setText(
+        'statUsersNote',
+        formatNumber(stats.job_seekers) + ' seekers · ' + formatNumber(stats.employers) + ' employers'
+      );
+      setText('statPlacementValue', Number(stats.placement_rate || 0).toFixed(1) + '%');
+      setText(
+        'statPlacementNote',
+        formatNumber(stats.total_applications) + ' applications tracked'
+      );
+      setText('statEmployersValue', formatNumber(stats.employers));
+      setText(
+        'statEmployersNote',
+        formatNumber(stats.open_jobs) + ' open of ' + formatNumber(stats.total_jobs) + ' listings'
+      );
+      setText('statMatchesValue', formatNumber(stats.total_matches));
+      setText(
+        'statMatchesNote',
+        formatNumber(stats.qualified_matches) + ' qualified matches'
+      );
+    }
+
+    function renderDirectory(rows) {
+      const tbody = document.getElementById('userTableBody');
+      tbody.replaceChildren();
+
+      if (!rows.length) {
+        const emptyRow = document.createElement('tr');
+        const emptyCell = document.createElement('td');
+
+        emptyCell.colSpan = 4;
+        emptyCell.className = 'py-6 px-6 text-sm text-gray-500';
+        emptyCell.textContent = 'No accounts match this search.';
+
+        emptyRow.appendChild(emptyCell);
+        tbody.appendChild(emptyRow);
+        return;
+      }
+
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+
+        const who = document.createElement('td');
+        who.className = 'py-4 px-6';
+        const name = document.createElement('p');
+        name.className = 'font-bold text-gray-900';
+        name.textContent = row.full_name || 'Unnamed account';
+        const mail = document.createElement('p');
+        mail.className = 'text-xs text-gray-500';
+        mail.textContent = row.email || '';
+        who.append(name, mail);
+
+        const role = document.createElement('td');
+        role.className = 'py-4 px-6';
+        const roleBadge = document.createElement('span');
+        roleBadge.className = 'text-xs font-semibold px-2.5 py-1 rounded-md ' +
+          (row.role === 'employer'
+            ? 'bg-emerald-50 text-brand-green'
+            : row.role === 'admin'
+              ? 'bg-amber-50 text-brand-amber'
+              : 'bg-blue-50 text-blue-700');
+        roleBadge.textContent = ROLE_LABELS[row.role] || row.role || 'Unknown';
+        role.appendChild(roleBadge);
+
+        const detail = document.createElement('td');
+        detail.className = 'py-4 px-6 text-gray-600';
+        detail.textContent = row.detail || '—';
+
+        const joined = document.createElement('td');
+        joined.className = 'py-4 px-6 text-right text-gray-600';
+        joined.textContent = row.created_at
+          ? new Date(row.created_at).toLocaleDateString()
+          : '—';
+
+        tr.append(who, role, detail, joined);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderActivity(rows) {
+      const feed = document.getElementById('activityFeed');
+
+      if (!rows.length) {
+        feed.innerHTML = '<p class="text-xs text-gray-500">No platform activity recorded yet.</p>';
+        return;
+      }
+
+      feed.innerHTML = rows.map((row) => {
+        const tone = row.kind === 'job'
+          ? 'bg-amber-50 text-brand-amber'
+          : row.kind === 'signup'
+            ? 'bg-blue-50 text-blue-600'
+            : 'bg-emerald-50 text-brand-green';
+
+        return `
+          <div class="flex items-start space-x-3 text-xs border-b border-gray-100 pb-3">
+            <div class="p-2 ${tone} rounded-lg">
+              <i data-lucide="${ACTIVITY_ICONS[row.kind] || 'activity'}" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900">${escapeHtml(ACTIVITY_TITLES[row.kind] || 'Platform event')}</p>
+              <p class="text-gray-500">${escapeHtml(row.label || '')}${row.detail ? ' · ' + escapeHtml(row.detail) : ''}</p>
+              <span class="text-[10px] text-gray-400">${relativeTime(row.at)}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderCharts(data) {
+      if (typeof Chart === 'undefined') return;
+
+      const monthly = data.monthly || [];
+      const counties = data.counties || [];
+
+      if (placementsChartInstance) placementsChartInstance.destroy();
+      if (countyChartInstance) countyChartInstance.destroy();
+
+      placementsChartInstance = new Chart(
+        document.getElementById('placementsChart').getContext('2d'),
+        {
+          type: 'bar',
+          data: {
+            labels: monthly.length ? monthly.map((row) => row.label) : ['No data'],
+            datasets: [{
+              label: 'Applications',
+              data: monthly.length ? monthly.map((row) => Number(row.total)) : [0],
+              backgroundColor: '#1A5C32',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } },
+              x: { grid: { display: false } }
+            }
+          }
+        }
+      );
+
+      const palette = ['#1A5C32', '#F05A28', '#0D2B17', '#34D399', '#FBBF24', '#9CA3AF'];
+
+      countyChartInstance = new Chart(
+        document.getElementById('countyChart').getContext('2d'),
+        {
+          type: 'doughnut',
+          data: {
+            labels: counties.length ? counties.map((row) => row.county) : ['No data'],
+            datasets: [{
+              data: counties.length ? counties.map((row) => Number(row.seekers)) : [1],
+              backgroundColor: palette,
+              borderWidth: counties.length ? 0 : 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12, font: { size: 10 } }
+              }
+            }
+          }
+        }
+      );
+    }
+
+    function filterDirectory() {
+      const term = (document.getElementById('userSearch').value || '').trim().toLowerCase();
+
+      if (!term) {
+        renderDirectory(directoryRows);
+        return;
+      }
+
+      const visible = directoryRows.filter((row) =>
+        `${row.full_name || ''} ${row.email || ''} ${row.detail || ''}`.toLowerCase().includes(term)
+      );
+
+      renderDirectory(visible);
+    }
+
+    function exportReport() {
+      if (!directoryRows.length) {
+        showBanner('Nothing to export yet.', 'info');
+        return;
+      }
+
+      const header = ['Name', 'Email', 'Role', 'Location/Company', 'Joined'];
+      const lines = directoryRows.map((row) => [
+        row.full_name || '',
+        row.email || '',
+        ROLE_LABELS[row.role] || row.role || '',
+        row.detail || '',
+        row.created_at ? new Date(row.created_at).toISOString().slice(0, 10) : ''
+      ].map((cell) => '"' + String(cell).replace(/"/g, '""') + '"'));
+
+      const csv = [header.join(','), ...lines.map((line) => line.join(','))].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'kaziConnect-platform-report.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadAdminDashboard() {
+      const session = getSession();
+
+      if (!session || !session.token) {
+        window.location.replace(LOGIN_PAGE);
+        return;
+      }
+
+      setText('adminNavName', session.fullName || 'Administrator');
+
+      if (session.role !== 'admin') {
+        showBanner(
+          'This portal is restricted to administrator accounts. Log in with an admin account to continue.',
+          'error'
+        );
+        return;
+      }
+
+      try {
+        const data = await api('/api/admin/dashboard');
+
+        directoryRows = data.directory || [];
+
+        renderStats(data.stats || {});
+        renderDirectory(directoryRows);
+        renderActivity(data.activity || []);
+        renderCharts(data);
+
+        setText('dashboardUpdated', 'Updated ' + new Date().toLocaleTimeString());
+
+        if (window.lucide) lucide.createIcons();
+      } catch (error) {
+        console.error('Admin dashboard error:', error);
+        showBanner(error.message || 'Could not load the admin dashboard.', 'error');
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('exportBtn').addEventListener('click', exportReport);
+    document.getElementById('userSearch').addEventListener('input', filterDirectory);
+
+    if (window.lucide) lucide.createIcons();
+
+    loadAdminDashboard();
+  </script>
+</body>
+</html>
